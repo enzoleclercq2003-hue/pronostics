@@ -1,0 +1,20 @@
+{
+  "model": "et",
+  "variant": "no_odds",
+  "val_logloss": 0.9745244616727432,
+  "fold_losses": [
+    0.9607743739035038,
+    0.9776362653089884,
+    0.9851627458057374
+  ],
+  "n_trials": 100,
+  "n_pruned": 43,
+  "minutes": 7.121465273698171,
+  "params": {
+    "n_estimators": 500,
+    "max_depth": 13,
+    "min_samples_leaf": 26,
+    "max_features": 0.6775249376546983,
+    "max_samples": 0.35425325244386685
+  }
+}

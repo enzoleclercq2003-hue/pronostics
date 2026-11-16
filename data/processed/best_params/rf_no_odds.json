@@ -1,0 +1,20 @@
+{
+  "model": "rf",
+  "variant": "no_odds",
+  "val_logloss": 0.973424900155443,
+  "fold_losses": [
+    0.9608374557974023,
+    0.9749015595422895,
+    0.984535685126637
+  ],
+  "n_trials": 100,
+  "n_pruned": 43,
+  "minutes": 22.572455569108328,
+  "params": {
+    "n_estimators": 500,
+    "max_depth": 10,
+    "min_samples_leaf": 60,
+    "max_features": 0.36551070126352364,
+    "max_samples": 0.2735678271018387
+  }
+}

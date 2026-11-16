@@ -1,0 +1,21 @@
+{
+  "model": "hgb",
+  "variant": "no_odds",
+  "val_logloss": 0.9735078549883541,
+  "fold_losses": [
+    0.9610459593988281,
+    0.974048165256185,
+    0.9854294403100494
+  ],
+  "n_trials": 100,
+  "n_pruned": 36,
+  "minutes": 21.961751174926757,
+  "params": {
+    "learning_rate": 0.010309363486890216,
+    "max_leaf_nodes": 4,
+    "min_samples_leaf": 63,
+    "l2_regularization": 0.00475125723430611,
+    "max_features": 0.7357445375476723,
+    "n_iter": 711
+  }
+}

@@ -1,0 +1,26 @@
+# Environnement et fichiers générés
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+app.log
+site/
+predictions_semaine.html
+
+# Données téléchargées ou recalculables (volumineuses, et pour certaines non redistribuables)
+data/raw/
+data/external/
+data/processed/*
+!data/processed/elo_params.json
+!data/processed/cluster_params.json
+!data/processed/best_params/
+data/processed/best_params/*.db
+
+# Écussons des clubs (marques déposées) : jamais publiés
+app/logos/
+
+# Modèle avec cotes : volumineux et inutile au site
+models/best_pipeline_with_odds.joblib
+
+# Journal de suivi de l'application locale (celui du site, predictions_log_public.csv, est versionné)
+results/predictions_log.csv

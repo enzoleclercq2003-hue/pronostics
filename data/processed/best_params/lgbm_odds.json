@@ -1,0 +1,24 @@
+{
+  "model": "lgbm",
+  "variant": "odds",
+  "val_logloss": 0.9627338043430331,
+  "fold_losses": [
+    0.9501971862073835,
+    0.9625259798752498,
+    0.9754782469464661
+  ],
+  "n_trials": 100,
+  "n_pruned": 33,
+  "minutes": 2.7146377762158713,
+  "params": {
+    "learning_rate": 0.10857613819080449,
+    "num_leaves": 46,
+    "max_depth": 2,
+    "min_child_samples": 139,
+    "colsample_bytree": 0.9622711379210541,
+    "subsample": 0.5403416890854901,
+    "reg_alpha": 0.003812075000546497,
+    "reg_lambda": 0.0011542064045464316,
+    "n_iter": 39
+  }
+}

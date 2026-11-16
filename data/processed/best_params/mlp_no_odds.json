@@ -1,0 +1,21 @@
+{
+  "model": "mlp",
+  "variant": "no_odds",
+  "val_logloss": 0.973171403802119,
+  "fold_losses": [
+    0.9597689735483775,
+    0.9740473889086105,
+    0.9856978489493688
+  ],
+  "n_trials": 100,
+  "n_pruned": 34,
+  "minutes": 7.994958547751109,
+  "params": {
+    "n_layers": 2,
+    "units": 63,
+    "alpha": 1.6626852782880255,
+    "learning_rate_init": 0.0006140217430505465,
+    "batch_size": 128,
+    "n_iter": 8
+  }
+}

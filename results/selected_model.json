@@ -1,0 +1,14 @@
+{
+  "no_odds": {
+    "key": "no_odds|logreg|temp",
+    "label": "Régression logistique (calibré)",
+    "logloss": 0.9823287495420197,
+    "accuracy": 0.5283376016033849
+  },
+  "odds": {
+    "key": "odds|ens_stacking",
+    "label": "Ensemble : stacking",
+    "logloss": 0.9717166792038582,
+    "accuracy": 0.5367999109230598
+  }
+}
