@@ -68,6 +68,7 @@ def main():
     (SITE / "fonts").mkdir(parents=True)
     (SITE / "index.html").write_text(build_page(use_players), encoding="utf-8")
     (SITE / "data.json").write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    shutil.copy(ROOT / "app" / "team_colors.json", SITE / "colors.json")     # couleurs des pastilles d'équipes
     shutil.copy(ROOT / "app" / "icon.png", SITE / "icon.png")
     shutil.copy(ROOT / "app" / "icon.ico", SITE / "favicon.ico")
     shutil.copy(ROOT / "app" / "fonts" / "InterVariable.woff2", SITE / "fonts" / "InterVariable.woff2")

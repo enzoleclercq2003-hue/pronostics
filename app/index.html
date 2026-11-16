@@ -108,7 +108,7 @@ h2 span{color:var(--ink3);font-weight:400;font-size:17px;letter-spacing:-.01em;m
 .brand svg{width:22px;height:22px;color:var(--ink)}
 .name{display:flex;align-items:center;gap:11px;min-width:0}
 .name .tx{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.crest{width:26px;height:26px;flex:none;object-fit:contain}
+.crest{width:26px;height:26px;flex:none;object-fit:contain;color:var(--ink)}
 .crest.mono{border-radius:50%;background:var(--track);display:grid;place-items:center;font-size:11px;font-weight:650;color:var(--ink2)}
 .crest.none{visibility:hidden}
 .pick.has-crest{grid-template-columns:28px 44px 1fr auto}
@@ -296,6 +296,8 @@ footer{color:var(--ink3);font-size:12px;border-top:1px solid var(--hair);margin-
 </script>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
   <linearGradient id="lg"><stop offset="0" stop-color="#2997ff"/><stop offset=".55" stop-color="#8f7bff"/><stop offset="1" stop-color="#d86bff"/></linearGradient>
+  <clipPath id="bdg"><circle cx="20" cy="20" r="17"/></clipPath>
+  <linearGradient id="bgl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".34"/><stop offset=".55" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".22"/></linearGradient>
 </defs></svg>
 <div id="splash" aria-hidden="true"><div class="sp-in">
   <svg class="sp-logo" viewBox="0 0 100 100"><g fill="none" stroke-width="11.5" stroke-linecap="round">
@@ -523,9 +525,22 @@ const N_EN = {...N_FR, 'La Coruna':'Deportivo La Coruña','Ein Frankfurt':'Eintr
 const nm = x => (LANG === 'en' ? N_EN : N_FR)[x] || x;
 const norm = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
+// Pastille aux couleurs du club (site public : aucun écusson). Couleurs et motif viennent de colors.json ;
+// pour une équipe inconnue, deux teintes stables sont tirées de son nom.
+let COLORS = {};
+function teamBadge(team) {
+  let c = COLORS[team];
+  if (!c) { let h = 0; for (const ch of team) h = (h * 31 + ch.charCodeAt(0)) % 360; c = [`hsl(${h} 62% 46%)`, `hsl(${(h + 40) % 360} 30% 92%)`, 'band']; }
+  const [p, s, kind] = c;
+  const motif = kind === 'stripes' ? [7.5, 17.5, 27.5].map(x => `<rect x="${x}" y="0" width="5" height="40" fill="${s}"/>`).join('')
+    : kind === 'half' ? `<rect x="20" y="0" width="20" height="40" fill="${s}"/>`
+    : `<rect x="-10" y="15.5" width="60" height="9" fill="${s}" transform="rotate(-38 20 20)"/>`;
+  return `<svg class="crest" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="${p}"/><g clip-path="url(#bdg)">${motif}</g>
+    <circle cx="20" cy="20" r="17" fill="url(#bgl)"/><circle cx="20" cy="20" r="17" fill="none" stroke="currentColor" stroke-opacity=".3" stroke-width="1"/></svg>`;
+}
 function crest(team) {
   const l = LOGOS[team], file = l && (root.dataset.theme === 'light' ? l.light : l.dark);
-  return file ? `<img class="crest" src="/logos/${esc(file)}" alt="" decoding="async">` : `<span class="crest mono" aria-hidden="true">${esc(nm(team).charAt(0))}</span>`;
+  return file ? `<img class="crest" src="/logos/${esc(file)}" alt="" decoding="async">` : teamBadge(team);
 }
 const RING = `<svg viewBox="0 0 100 100" aria-hidden="true"><g fill="none" stroke-width="11.5" stroke-linecap="round">
   <circle cx="50" cy="50" r="30" stroke="url(#lg)" stroke-dasharray="89 188.5" transform="rotate(-90 50 50)"/>
@@ -819,6 +834,7 @@ function stateBlock(title, text, btn) { return `<div class="state">${RING}<h2>${
 const SITE = window.SITE || null;
 async function loadData() {
   if (!SITE) try { LOGOS = await (await fetch('/logos/index.json')).json(); } catch (e) {}
+  if (SITE && !Object.keys(COLORS).length) try { COLORS = await (await fetch('colors.json')).json(); } catch (e) {}
   let d;
   try { d = await (await fetch(SITE ? 'data.json?' + Date.now() : '/api/data')).json(); OFFLINE = false; }
   catch (e) { OFFLINE = true; if (!DATA) { $('#tab-matchs').innerHTML = stateBlock(t(SITE ? 'errT' : 'offT'), t(SITE ? 'errS' : 'offS'), true); $('#retry').onclick = () => location.reload(); } return; }

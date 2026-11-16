@@ -89,6 +89,56 @@ def _espn_teams() -> pd.DataFrame:
     return pd.DataFrame(events)
 
 
+# Couleurs historiques des clubs les plus connus (principale, secondaire, motif), saisies à la main :
+# celles de la source automatique sont parfois approximatives. Motifs : band (écharpe), stripes (rayures), half (mi-parti).
+COLOR_OVERRIDES = {
+    "Arsenal": ("#ef0107", "#ffffff", "band"), "Aston Villa": ("#670e36", "#95bfe5", "band"), "Brighton": ("#0057b8", "#ffffff", "stripes"),
+    "Chelsea": ("#034694", "#ffffff", "band"), "Crystal Palace": ("#1b458f", "#c4122e", "stripes"), "Everton": ("#003399", "#ffffff", "band"),
+    "Liverpool": ("#c8102e", "#f6eb61", "band"), "Man City": ("#6cabdd", "#ffffff", "band"), "Man United": ("#da291c", "#000000", "band"),
+    "Newcastle": ("#ffffff", "#241f20", "stripes"), "Tottenham": ("#ffffff", "#132257", "band"), "Leeds": ("#ffffff", "#1d428a", "band"),
+    "Barcelona": ("#a50044", "#004d98", "stripes"), "Real Madrid": ("#ffffff", "#febe10", "band"), "Ath Madrid": ("#ffffff", "#cb3524", "stripes"),
+    "Ath Bilbao": ("#ffffff", "#ee2523", "stripes"), "Sevilla": ("#ffffff", "#d4021d", "band"), "Betis": ("#ffffff", "#00954c", "stripes"),
+    "Sociedad": ("#ffffff", "#0067b1", "stripes"), "Valencia": ("#ffffff", "#ee3524", "band"), "Villarreal": ("#ffe667", "#005187", "band"),
+    "Celta": ("#8ac3ee", "#ffffff", "band"), "Espanol": ("#ffffff", "#007fc8", "stripes"),
+    "Juventus": ("#ffffff", "#000000", "stripes"), "Inter": ("#0068a8", "#000000", "stripes"), "Milan": ("#fb090b", "#000000", "stripes"),
+    "Napoli": ("#12a0d7", "#ffffff", "band"), "Roma": ("#8e1f2f", "#f0bc42", "band"), "Lazio": ("#87d8f7", "#ffffff", "band"),
+    "Fiorentina": ("#482e92", "#ffffff", "band"), "Atalanta": ("#1e71b8", "#000000", "stripes"), "Torino": ("#8a1e03", "#ffffff", "band"),
+    "Bologna": ("#a21c26", "#1a2f48", "stripes"), "Genoa": ("#ad1919", "#002d5a", "half"), "Udinese": ("#ffffff", "#000000", "stripes"),
+    "Bayern Munich": ("#dc052d", "#ffffff", "band"), "Dortmund": ("#fde100", "#000000", "band"), "Leverkusen": ("#e32221", "#000000", "band"),
+    "RB Leipzig": ("#ffffff", "#dd0741", "band"), "Stuttgart": ("#ffffff", "#e32219", "band"), "Ein Frankfurt": ("#000000", "#e1000f", "band"),
+    "M'gladbach": ("#ffffff", "#1d9053", "band"), "Werder Bremen": ("#1d9053", "#ffffff", "band"), "Freiburg": ("#e2001a", "#000000", "band"),
+    "Hoffenheim": ("#1961b5", "#ffffff", "band"), "Hamburg": ("#ffffff", "#0a3f86", "band"), "Schalke 04": ("#004d9d", "#ffffff", "band"),
+    "FC Koln": ("#ffffff", "#ed1c24", "band"), "Union Berlin": ("#eb1923", "#ffd700", "band"), "Mainz": ("#c3141e", "#ffffff", "band"),
+    "Paris SG": ("#004170", "#da291c", "band"), "Marseille": ("#ffffff", "#2faee0", "band"), "Lyon": ("#ffffff", "#da001a", "band"),
+    "Monaco": ("#e30613", "#ffffff", "half"), "Lille": ("#e01e13", "#20325f", "band"), "Nice": ("#d6001c", "#000000", "stripes"),
+    "Rennes": ("#e13327", "#000000", "band"), "Lens": ("#fff200", "#ec1c24", "band"), "Strasbourg": ("#009fe3", "#ffffff", "band"),
+    "Toulouse": ("#5a2d82", "#ffffff", "band"), "Brest": ("#e30613", "#ffffff", "band"),
+}
+
+
+def export_team_colors(history: pd.DataFrame) -> dict:
+    """Écrit app/team_colors.json : {équipe: [couleur principale, couleur secondaire]} (codes hexadécimaux).
+    Sert aux pastilles du site public, qui n'affiche aucun écusson. Les couleurs d'un club ne sont pas
+    protégées comme l'est son logo. À relancer en début de saison pour les promus."""
+    from src.live_players import _team_votes
+    events = _espn_teams()
+    names = _team_votes(events, history[history["FTR"].notna()])
+    colors = {}
+    for league, slug in SLUGS.items():
+        for path in (CACHE / slug).glob("scoreboard_*.json"):
+            for e in json.loads(path.read_text(encoding="utf-8")).get("events", []):
+                for c in e["competitions"][0]["competitors"]:
+                    team = names.get((league, c["team"]["displayName"]))
+                    if team and c["team"].get("color"):
+                        colors[team] = ["#" + c["team"]["color"].lower(), "#" + (c["team"].get("alternateColor") or "ffffff").lower()]
+    path = APP_DIR / "team_colors.json"
+    known = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    known.update({t: [p, s, "band"] for t, (p, s) in colors.items()})
+    known.update({t: list(v) for t, v in COLOR_OVERRIDES.items()})     # couleurs et motifs vérifiés à la main
+    path.write_text(json.dumps(dict(sorted(known.items())), ensure_ascii=False, indent=1), encoding="utf-8")
+    return known
+
+
 def _download(url: str) -> bytes | None:
     try:
         return urllib.request.urlopen(urllib.request.Request(url, headers=HEADERS), timeout=20).read()
