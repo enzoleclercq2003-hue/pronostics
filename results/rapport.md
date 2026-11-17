@@ -270,6 +270,28 @@ plus faible. Ces variables ne sont donc pas intégrées au modèle en production
 (buts et passes par 90 minutes) et la fatigue avaient déjà été testées en 8 bis, sans gain au-delà de la
 valeur marchande.
 
+### Enjeu sportif des matchs (retenu)
+
+Variables `src/stakes.py`, calculées avant chaque match à partir du classement : pour le titre, la quatrième
+place et le maintien, l'objectif est-il encore ouvert compte tenu des points restant en jeu, et à quel point
+est-ce serré ; plus un indicateur « plus rien à jouer ». Test anti-fuite dédié ; expérience
+`scripts/15_stakes.py` (`stakes_experiment.csv`), modèle de production `scripts/16_retrain_with_stakes.py`.
+
+Walk-forward 2020/21 à 2024/25 (écart de log loss, par rapport au modèle sans enjeu) :
+
+| Matchs | Régression logistique | LightGBM |
+|---|---|---|
+| Tous (8 981) | −0,0009 [−0,0020 ; +0,0001], p = 0,07 | −0,0001 (p = 0,90) |
+| Dernier quart de saison (2 140) | **−0,0049** [−0,0088 ; −0,0008], p = 0,02 | **−0,0047** [−0,0085 ; −0,0008], p = 0,02 |
+
+L'effet se concentre en fin de saison, comme attendu : une équipe sans objectif (31 % des matchs du dernier
+quart concernent au moins une telle équipe) obtient de moins bons résultats que sa force ne le laisse prévoir,
+une équipe menacée de relégation légèrement meilleurs. Le modèle de production intègre désormais ces
+variables. Sur la saison 2025/26, déjà utilisée comme test final et regardée ici à titre de simple contrôle,
+le gain est du même ordre (−0,0009, non significatif sur 1 752 matchs). La précision brute varie peu
+(52,6 % contre 52,8 % en walk-forward) : le gain porte sur la qualité des probabilités. L'ancien modèle est
+conservé sous `models/best_pipeline_v1.joblib`.
+
 ## 9. Limites
 
 - Le test final ne compte que 1 752 matchs : les intervalles de confiance sont larges (± 2,3 points de précision).

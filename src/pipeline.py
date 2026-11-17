@@ -23,11 +23,15 @@ class MatchPredictor:
         self.model_names = MODEL_NAMES if self.kind != "single" else [parts[1]]
 
     # -- entraînement ----------------------------------------------------------------------
-    def fit(self, feats: pd.DataFrame, oos: pd.DataFrame, elo_params: dict, n_threads: int = -1):
+    def fit(self, feats: pd.DataFrame, oos: pd.DataFrame, elo_params: dict, n_threads: int = -1, stakes: pd.DataFrame | None = None):
         """`feats` : table de variables complète ; `oos` : prédictions hors échantillon passées,
-        utilisées pour apprendre la calibration ou la combinaison (jamais les données d'entraînement)."""
+        utilisées pour apprendre la calibration ou la combinaison (jamais les données d'entraînement).
+        `stakes` : variables d'enjeu (src/stakes.py) à ajouter ; elles sont alors recalculées à chaque prédiction."""
         from src.evaluation import get
         self.elo_params = elo_params
+        self.use_stakes = stakes is not None
+        if self.use_stakes:
+            feats = feats.merge(stakes, on="match_id", how="left")
         played = feats["y"].notna().to_numpy()
         fold, self.clusterer = add_cluster_features(feats, played)
         self.features = select_features(fold.columns, with_odds=self.variant == "odds")
@@ -60,6 +64,9 @@ class MatchPredictor:
             fx, combined = history.iloc[:0], history
         combined = combined.sort_values(["Date", "league", "HomeTeam"], kind="mergesort").reset_index(drop=True)
         feats = build_features(combined, self.elo_params)
+        if getattr(self, "use_stakes", False):                  # absent des modèles sauvegardés avant l'ajout de l'enjeu
+            from src.stakes import build_stakes
+            feats = feats.merge(build_stakes(combined), on="match_id", how="left")
         fold, _ = add_cluster_features(feats, np.zeros(len(feats), dtype=bool), clusterer=self.clusterer)
         return fold, fx, combined
 

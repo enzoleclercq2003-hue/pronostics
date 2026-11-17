@@ -261,6 +261,12 @@ h2 span{color:var(--ink3);font-weight:400;font-size:17px;letter-spacing:-.01em;m
 .legendx{display:flex;gap:18px;font-size:12.5px;color:var(--ink2);margin-top:10px}
 .legendx i{display:inline-block;width:14px;height:3px;border-radius:3px;margin-right:7px;vertical-align:middle}
 
+/* absences annoncées */
+.nw{padding:10px 0;border-top:1px solid var(--hair)}.nw:first-of-type{border-top:0;padding-top:2px}
+.nwh{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:14.5px}.nwh b{font-weight:600}
+.cf{font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap}.cf.c1{background:rgba(255,69,58,.15);color:var(--bad)}.cf.c2{background:rgba(255,159,10,.15);color:#ff9f0a}.cf.c3{background:var(--track);color:var(--ink2)}
+.src{display:block;font-size:12.5px;color:var(--ink3);margin-top:5px;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.src:hover{color:var(--accent)}
+.extra .warnx{color:#ff9f0a}
 /* états */
 .state{text-align:center;padding:90px 20px 40px;max-width:520px;margin:0 auto}
 .state svg{width:74px;height:74px;opacity:.9;color:var(--ink)}
@@ -347,7 +353,7 @@ footer{color:var(--ink3);font-size:12px;border-top:1px solid var(--hair);margin-
 
     <div class="flow" role="img" aria-label="Chaîne de calcul : données, variables, modèle, probabilités">
       <div class="node"><small>01</small><b>Données</b><span>Résultats, tirs, compositions, valeurs marchandes</span></div>
-      <div class="node"><small>02</small><b>Variables</b><span>Elo, Dixon-Coles, forme, effectifs</span></div>
+      <div class="node"><small>02</small><b>Variables</b><span>Elo, Dixon-Coles, forme, enjeu, effectifs</span></div>
       <div class="node"><small>03</small><b>Modèle</b><span>Régression logistique multinomiale régularisée</span></div>
       <div class="node"><small>04</small><b>Probabilités</b><span>Domicile, nul, extérieur</span></div>
     </div>
@@ -472,7 +478,10 @@ const I = {
     footer: d => `Dernier calcul le ${d}. Estimation statistique, pas un conseil de pari.`, quit: "Arrêter l'application", first: 'Premier lancement', firstT: 'Calcul en cours.', firstS: 'Comptez une à deux minutes.',
     offT: 'Application arrêtée.', offS: 'Double-cliquez sur le raccourci « Pronostics Foot » du Bureau pour la relancer, puis réessayez.', retry: 'Réessayer',
     errT: 'Mise à jour impossible.', errS: 'Vérifiez la connexion Internet. Les dernières prédictions calculées restent affichées.', res: {W: 'V', D: 'N', L: 'D'},
-    lvl: {composition: 'Composition officielle prise en compte', effectifs: 'Valeur des effectifs prise en compte', base: 'Modèle de base'},
+    lvl: {composition: 'Composition officielle prise en compte', actualite: 'Absences annoncées prises en compte', effectifs: 'Valeur des effectifs prise en compte', base: 'Modèle de base'},
+    newsT: 'Absences annoncées', newsN: n => `${n} absent${n > 1 ? 's' : ''} annoncé${n > 1 ? 's' : ''}`, longT: 'longue durée',
+    conf: {'confirmée': 'Absent · confirmé', 'probable': 'Absent · probable', 'incertain': 'Incertain'},
+    newsNote: "Repérées automatiquement dans les flux d'actualité publics (BBC, The Guardian, L'Équipe, AS, Gazzetta, Sportschau…). « Confirmé » : annoncé par au moins deux médias, ou sans ambiguïté (opération, forfait…). Les absences confirmées ou probables d'un titulaire habituel sont intégrées aux probabilités ; vérifiez la source en cas de doute.",
     viz: {hda: ['domicile', 'nul', 'extérieur'], perf: ['Hasard', 'Toujours miser sur le domicile', 'Elo seul', 'Notre modèle', 'Bookmakers'],
           models: {'Bookmakers': 'Bookmakers', 'Régression logistique': 'Régression logistique', 'Perceptron multicouche': 'Perceptron multicouche', 'Dixon-Coles seul': 'Dixon-Coles seul', 'Elo seul': 'Elo seul'},
           sl: ['Buts attendus domicile ', 'Buts attendus extérieur ']} },
@@ -500,7 +509,10 @@ const I = {
     footer: d => `Last computed ${d}. Statistical estimate, not betting advice.`, quit: 'Stop the app', first: 'First launch', firstT: 'Computing.', firstS: 'This takes one to two minutes.',
     offT: 'App stopped.', offS: 'Double-click the “Pronostics Foot” desktop shortcut to relaunch it, then try again.', retry: 'Try again',
     errT: 'Update failed.', errS: 'Check your Internet connection. The latest computed predictions are still shown.', res: {W: 'W', D: 'D', L: 'L'},
-    lvl: {composition: 'Official line-up included', effectifs: 'Squad value included', base: 'Base model'},
+    lvl: {composition: 'Official line-up included', actualite: 'Reported absences included', effectifs: 'Squad value included', base: 'Base model'},
+    newsT: 'Reported absences', newsN: n => `${n} reported absent`, longT: 'long term',
+    conf: {'confirmée': 'Out · confirmed', 'probable': 'Out · likely', 'incertain': 'Doubtful'},
+    newsNote: 'Picked up automatically from public news feeds (BBC, The Guardian, L’Équipe, AS, Gazzetta, Sportschau…). “Confirmed”: reported by at least two outlets, or unambiguous (surgery, ruled out…). Confirmed or likely absences of regular starters are built into the probabilities; check the source when in doubt.',
     viz: {hda: ['home', 'draw', 'away'], perf: ['Chance', 'Always pick the home side', 'Elo only', 'Our model', 'Bookmakers'],
           models: {'Bookmakers': 'Bookmakers', 'Régression logistique': 'Logistic regression', 'Perceptron multicouche': 'Multilayer perceptron', 'Dixon-Coles seul': 'Dixon-Coles only', 'Elo seul': 'Elo only'},
           sl: ['Expected home goals ', 'Expected away goals ']} } };
@@ -600,7 +612,8 @@ function card(m, i) {
   const row = (label, k, cls, team) => `<div class="row ${cls} ${k === f && clear ? 'fav' : ''}"><span class="name">${team ? crest(team) : '<span class="crest none"></span>'}<span class="tx">${esc(label)}</span></span>${pc(m.p[k])}<i class="track"><b style="width:${num(m.p[k])}%"></b></i></div>`;
   const sc = topScores(m, 3).map(x => x.s).join(' · ');
   const d = m.detail, ab = d && [[m.home, d.home.absent.length], [m.away, d.away.absent.length]].filter(x => x[1] >= 3).sort((a, b) => b[1] - a[1])[0];
-  const right = m.level === 'composition' ? `<span class="ok">${esc(t('lvl').composition)}</span>` : ab ? `<span>${esc(t('absentN', nm(ab[0]), ab[1]))}</span>` : '';
+  const nn = d && d.home.news ? d.home.news.concat(d.away.news).filter(x => x.status === 'out').length : 0;
+  const right = m.level === 'composition' ? `<span class="ok">${esc(t('lvl').composition)}</span>` : nn ? `<span class="warnx">${esc(t('newsN', nn))}</span>` : ab ? `<span>${esc(t('absentN', nm(ab[0]), ab[1]))}</span>` : '';
   return `<article class="card" style="--i:${Math.min(i, 14)}" data-id="${esc(mid(m))}" tabindex="0" role="button" aria-label="${esc(nm(m.home))} – ${esc(nm(m.away))}">
     <div class="meta"><span>${esc(m.league_name)}</span><span>${esc(m.time)}</span></div>
     ${row(nm(m.home), 0, '', m.home)}${row(t('draw'), 1, 'draw')}${row(nm(m.away), 2, '', m.away)}
@@ -732,6 +745,8 @@ function openDetail(m) {
   }
   if (m.book) html += `<h3>${esc(t('vsBook'))}</h3><div class="box"><div class="cmp"><span class="h">${esc(t('outcome'))}</span><span class="h r">${esc(cap(t('model')))}</span><span class="h r">${esc(cap(t('market')))}</span><span class="h r">${esc(cap(t('odd')))}</span>
       ${m.p.map((v, k) => `<span>${esc(lab[k])}</span><b class="r">${num(v)} %</b><span class="r">${num(m.book[k])} %</span><span class="r">${dec(m.odds[k])}</span>`).join('')}</div></div>`;
+  if (d && d.home.news && (d.home.news.length || d.away.news.length)) html += `<h3>${esc(t('newsT'))}</h3><div class="two">${[[m.home, d.home], [m.away, d.away]].map(([team, td]) =>
+      `<div class="box"><div class="lbl"><span>${esc(nm(team))}</span><span>${td.news.length}</span></div>${td.news.length ? td.news.map(n => `<div class="nw"><div class="nwh"><b>${esc(n.player)}</b><span class="cf ${n.status === 'out' ? (n.confidence === 'confirmée' ? 'c1' : 'c2') : 'c3'}">${esc(t('conf')[n.confidence] || n.confidence)}${n.long ? ' · ' + esc(t('longT')) : ''}</span></div>${n.sources.map(sr => `<a class="src" href="${esc(sr.link)}" target="_blank" rel="noopener noreferrer">${esc(sr.source)} · ${esc(sr.title)}</a>`).join('')}</div>`).join('') : `<div class="names">${esc(t('nobody'))}</div>`}</div>`).join('')}</div><p class="note">${esc(t('newsNote'))}</p>`;
   if (d && (d.home.absent.length || d.away.absent.length)) html += `<h3>${esc(t('absent'))}</h3><div class="two">${[[m.home, d.home], [m.away, d.away]].map(([team, td]) =>
       `<div class="box"><div class="lbl"><span>${esc(nm(team))}</span><span>${td.absent.length}</span></div><div class="names">${td.absent.length ? td.absent.map(esc).join('<br>') : esc(t('nobody'))}</div></div>`).join('')}</div><p class="note">${esc(t('absentNote'))}</p>`;
   const bg = document.createElement('div');
@@ -756,7 +771,7 @@ function render() {
 }
 const EN_MODEL = ['Model', 'Under the hood.', 'Every probability comes out of a documented pipeline, evaluated on seasons the model had never seen.',
   'matches analysed since 2005', 'seasons, five leagues', 'features per match', 'algorithms compared',
-  'Data', 'Results, shots, line-ups, market values', 'Features', 'Elo, Dixon-Coles, form, squads', 'Model', 'Regularised multinomial logistic regression', 'Probabilities', 'Home, draw, away',
+  'Data', 'Results, shots, line-ups, market values', 'Features', 'Elo, Dixon-Coles, form, stakes, squads', 'Model', 'Regularised multinomial logistic regression', 'Probabilities', 'Home, draw, away',
   'Dynamic Elo', 'Each team’s strength, continuously.', 'Every team carries a rating updated after each match, weighted by goal difference, with regression to the mean between seasons. Parameters are tuned by chronological validation: K-factor of 12, season carry-over of 0.9, promoted sides entering at −80 points.', 'Sketch: the rating rises after an unexpected win and falls after an unexpected loss.',
   'Dixon-Coles', 'A model of goals.', 'Each team’s goals follow a Poisson distribution whose attack and defence parameters are estimated by maximum likelihood, on a three-year rolling window with exponential decay (240-day half-life). A dependence term τ corrects the frequency of low scores.', 'Try it: each cell is the probability of a score (rows: home goals, columns: away goals).',
   'Recent form', 'The latest matches weigh more.', 'Points, goals, shots, shots on target and corners are summarised by exponentially weighted moving averages, computed separately at home and away. Only strictly earlier matches are used: no statistic from the match being predicted enters the calculation.', 'Sketch: weight of the last ten matches, most recent first.',
@@ -773,7 +788,7 @@ function stripPlayers() {
   if (feats.length === 7) feats[3].remove();
   const nodes = $$('#tab-modele .node span');
   if (nodes[0]) nodes[0].textContent = LANG === 'en' ? 'Results, shots, corners, cards' : 'Résultats, tirs, corners, cartons';
-  if (nodes[1]) nodes[1].textContent = LANG === 'en' ? 'Elo, Dixon-Coles, form' : 'Elo, Dixon-Coles, forme';
+  if (nodes[1]) nodes[1].textContent = LANG === 'en' ? 'Elo, Dixon-Coles, form, stakes' : 'Elo, Dixon-Coles, forme, enjeu';
   [...$$('#tab-modele .feat:last-of-type p:not(.cap)'), ...$$('#tab-modele > .fine')].forEach(p => {
     p.textContent = p.textContent.replace(/,? et les valeurs marchandes datent de juin 2026|,? and market values date from June 2026/, '').split(/(?<=\.)\s+/).filter(s => !about.test(s)).join(' '); });
 }

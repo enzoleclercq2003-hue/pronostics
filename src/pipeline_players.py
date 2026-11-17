@@ -14,22 +14,55 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from src.live_players import live_tables
+import config as cfg
+from src import news
+from src.live_players import live_tables, probable_lineups
 from src.models import Model, load_params
 from src.player_features import LIVE_LINEUP_COLS, LIVE_PRE_COLS, build_player_features, load_tables
 
 PLAYER_START_SEASON = 2013
-LEVELS = {"composition": "composition officielle prise en compte", "effectifs": "valeur des effectifs prise en compte",
-          "base": "modèle de base (effectif mal identifié)"}
+LEVELS = {"composition": "composition officielle prise en compte", "actualite": "absences annoncées dans l'actualité prises en compte",
+          "effectifs": "valeur des effectifs prise en compte", "base": "modèle de base (effectif mal identifié)"}
+NEWS_LOG = cfg.RESULTS_DIR / "news_absences_log.csv"     # absences retenues à chaque calcul, pour mesurer l'apport plus tard
 
 
-def player_fold(base, fixtures: pd.DataFrame | None, history: pd.DataFrame, verbose: bool = False):
-    """Table de variables complète (base + joueurs) pour l'historique et les matchs à venir."""
+def player_fold(base, fixtures: pd.DataFrame | None, history: pd.DataFrame, verbose: bool = False, use_news: bool = False):
+    """Table de variables complète (base + joueurs) pour l'historique et les matchs à venir.
+
+    `use_news` : pour les matchs à venir sans composition officielle, les absences annoncées dans
+    l'actualité donnent une composition probable (dernier onze moins les absents), traitée ensuite par
+    le modèle « composition » déjà validé. Seuls les matchs où un titulaire habituel est annoncé absent
+    sont concernés ; les autres gardent le modèle « effectifs »."""
     fold, fx, combined = base.fixture_fold(fixtures, history)
     tables = load_tables()
     extra_link, extra_lineups, report = live_tables(combined, tables, verbose=verbose)
+    report["news"], report["news_matches"] = pd.DataFrame(), set()
+    if use_news and len(fx):
+        try:
+            report["news"], rows, report["news_matches"] = news_lineups(extra_link, extra_lineups, report, list(fx["match_id"]), verbose)
+            extra_lineups = pd.concat([extra_lineups, rows], ignore_index=True)
+        except Exception as exc:                                   # actualité indisponible : on continue sans
+            report["news_error"] = f"{type(exc).__name__}: {exc}"
     players = build_player_features(combined, tables, freeze_valuations=True, extra_link=extra_link, extra_lineups=extra_lineups)
     return fold.merge(players, on="match_id", how="left"), fx, report
+
+
+def news_lineups(extra_link, extra_lineups, report, targets, verbose=False):
+    """Absences de l'actualité -> compositions probables pour les matchs à venir concernés."""
+    items = news.fetch(verbose=verbose)
+    ab = news.extract_absences(items, report["roster"], report["team_names"])
+    out_ids = set(ab.loc[ab.status == "out", "player_id"])
+    rows, changes = probable_lineups(extra_link, extra_lineups, targets, out_ids)
+    touched = {m for m, c in changes.items() if c["h"] or c["a"]}
+    games = set(extra_link.loc[extra_link.match_id.isin(touched), "game_id"])
+    rows = rows[rows.game_id.isin(games)]
+    if len(ab):
+        log = ab.assign(computed=pd.Timestamp.now(tz="Europe/Paris").strftime("%Y-%m-%d %H:%M"), n_sources=ab["sources"].map(len),
+                        until=ab["until"].dt.strftime("%Y-%m-%d"))[["computed", "team", "player", "status", "confidence", "until", "n_sources"]]
+        log.to_csv(NEWS_LOG, mode="a", header=not NEWS_LOG.exists(), index=False)
+    if verbose:
+        print(f"  absences annoncées : {len(ab)} joueurs, {len(touched)} matchs recalculés avec une composition probable")
+    return ab, rows, touched
 
 
 def fit_player_models(base, fold: pd.DataFrame, train_mask: np.ndarray) -> dict[str, Model]:
@@ -67,19 +100,28 @@ def predict_week(base, fixtures: pd.DataFrame, history: pd.DataFrame, verbose: b
                             "elo_home": rows["elo_h"].to_numpy(), "elo_away": rows["elo_a"].to_numpy()})
         out["detail"] = match_details(fold, rows, {})
         return out, {}
-    fold, fx, report = player_fold(base, fixtures, history, verbose)
+    fold, fx, report = player_fold(base, fixtures, history, verbose, use_news=getattr(cfg, "USE_NEWS", True))
     models = fit_player_models(base, fold, fold["y"].notna().to_numpy())
     rows = fold.set_index("match_id").loc[fx["match_id"]].reset_index()
     p, level = predict_levels(base, models, rows)
+    flagged = rows["match_id"].isin(report["news_matches"]).to_numpy()
+    level[flagged & (level == "composition")] = "actualite"
     p_base = base.predict_from_features(rows)
     out = pd.DataFrame({"p_home": p[:, 0], "p_draw": p[:, 1], "p_away": p[:, 2], "level": level,
                         "base_home": p_base[:, 0], "base_draw": p_base[:, 1], "base_away": p_base[:, 2],
                         "elo_home": rows["elo_h"].to_numpy(), "elo_away": rows["elo_a"].to_numpy()})
-    out["detail"] = match_details(fold, rows, report.get("absences", {}))
+    out["detail"] = match_details(fold, rows, report.get("absences", {}), report.get("news"))
     return out, report
 
 
-def match_details(fold: pd.DataFrame, rows: pd.DataFrame, absences: dict, n_form: int = 5, n_elo: int = 38) -> list[dict]:
+def _news_for(ab, team: str) -> list[dict]:
+    if ab is None or not len(ab):
+        return []
+    g = ab[ab.team == team].sort_values(["status", "confidence"], ascending=[False, True])
+    return [{"player": r.player, "status": r.status, "confidence": r.confidence, "long": bool(r.long), "sources": r.sources} for r in g.itertuples()]
+
+
+def match_details(fold: pd.DataFrame, rows: pd.DataFrame, absences: dict, news_ab=None, n_form: int = 5, n_elo: int = 38) -> list[dict]:
     """Contexte affiché dans la fiche d'un match : buts attendus, forme récente, historique Elo, absents."""
     played = fold[fold["y"].notna()]
     home = played[["Date", "HomeTeam", "AwayTeam", "FTHG", "FTAG", "elo_h"]].set_axis(["date", "team", "opp", "gf", "ga", "elo"], axis=1).assign(venue="H")
@@ -103,6 +145,6 @@ def match_details(fold: pd.DataFrame, rows: pd.DataFrame, absences: dict, n_form
         lam, mu = getattr(r, "dc_lambda", np.nan), getattr(r, "dc_mu", np.nan)
         absent = absences.get(int(r.match_id), {})
         details.append({"lam": None if pd.isna(lam) else float(lam), "mu": None if pd.isna(mu) else float(mu),
-                        "home": {**team(r.HomeTeam, r.elo_h), "absent": absent.get("h", [])},
-                        "away": {**team(r.AwayTeam, r.elo_a), "absent": absent.get("a", [])}})
+                        "home": {**team(r.HomeTeam, r.elo_h), "absent": absent.get("h", []), "news": _news_for(news_ab, r.HomeTeam)},
+                        "away": {**team(r.AwayTeam, r.elo_a), "absent": absent.get("a", []), "news": _news_for(news_ab, r.AwayTeam)}})
     return details

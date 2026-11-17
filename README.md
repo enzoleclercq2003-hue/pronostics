@@ -37,6 +37,8 @@ uv pip install --python .venv/Scripts/python.exe -r requirements.txt
 | 13 | `python scripts/13_live_check_2026.py` | Contrôle de la chaîne de production sur les matchs joués de 2026/27 |
 
 | 14 | `python scripts/14_player_ext.py` | Expérience : indisponibilités, postes, âge, banc (non retenue) |
+| 15 | `python scripts/15_stakes.py` | Expérience : enjeu sportif (titre, Europe, maintien) |
+| 16 | `python scripts/16_retrain_with_stakes.py` | Modèle de production avec l'enjeu |
 
 ## Prédictions de la semaine (automatique)
 
@@ -54,6 +56,8 @@ L'interface s'ouvre dans une fenêtre d'application (Edge ou Chrome en mode `--a
 par défaut. Elle propose une fiche par match (forme, Elo, scores probables, absents de la dernière feuille de
 match), un match à la une, la recherche, des équipes favorites, les derniers résultats, un suivi en graphique
 et une version anglaise. Liens directs : `#top`, `#suivi`, `#modele`, `?open=N`, `?lang=en`.
+
+**Actualité** : à chaque calcul, l'application locale lit neuf flux RSS publics (BBC, The Guardian, Sky, L'Équipe, AS, Mundo Deportivo, Gazzetta, Corriere dello Sport, Sportschau), repère les joueurs annoncés absents (`src/news.py`, sans IA payante) et recalcule les matchs concernés avec une composition probable. Désactivable avec `USE_NEWS` dans `config.py`. Les absences retenues sont consignées dans `results/news_absences_log.csv` pour mesurer leur apport après quelques semaines.
 
 **Version hébergée** : `python build_site.py` fabrique un site statique dans `site/` (sans écussons ni
 données joueurs), mis à jour automatiquement par `.github/workflows/site.yml`. Voir `DEPLOY.md`.

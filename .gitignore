@@ -24,3 +24,6 @@ models/best_pipeline_with_odds.joblib
 
 # Journal de suivi de l'application locale (celui du site, predictions_log_public.csv, est versionné)
 results/predictions_log.csv
+
+# Journal local des absences repérées dans l actualité
+results/news_absences_log.csv

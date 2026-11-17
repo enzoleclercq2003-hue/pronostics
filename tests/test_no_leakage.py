@@ -124,3 +124,16 @@ def test_no_match_stats_in_features(full_features):
     """Aucune colonne brute du match (buts, tirs, corners, cartons) parmi les variables."""
     cols = set(_feature_cols(full_features))
     assert not (cols & set(RESULT_STATS)), "statistiques du match présentes dans les variables"
+
+
+def test_stakes(matches):
+    """Variables d'enjeu : identiques après suppression du futur et masquage des résultats du jour."""
+    from src.stakes import build_stakes
+    full = build_stakes(matches).set_index("match_id")
+    cols = list(full.columns)
+    for mid in _sample_ids(matches)[:6]:
+        date = matches.loc[matches.match_id == mid, "Date"].iloc[0]
+        masked = matches[matches.Date <= date].copy()
+        masked.loc[masked.Date == date, RESULT_STATS] = np.nan
+        part = build_stakes(masked).set_index("match_id")
+        _assert_same(full.loc[mid], part.loc[mid], cols, f"enjeu, match {mid}")

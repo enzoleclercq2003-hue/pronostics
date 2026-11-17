@@ -38,6 +38,10 @@ ALL_SEASONS = list(range(FIRST_SEASON, CURRENT_SEASON + 1))
 # données sous licence. L'application locale, elle, n'est pas concernée par ce réglage.
 PUBLIC_USE_PLAYER_DATA = False
 
+# Application locale : absences annoncées dans l'actualité (flux RSS publics, src/news.py) prises en
+# compte à chaque calcul via une composition probable. Mettre à False pour revenir au modèle sans actualité.
+USE_NEWS = True
+
 # --- Sources ----------------------------------------------------------------
 PRIMARY_URL = "https://www.football-data.co.uk/mmz4281/{season_code}/{league}.csv"
 # Source de secours (sans cotes) : dépôt GitHub datasets/football-datasets

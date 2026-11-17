@@ -107,6 +107,31 @@ def probable_absences(vals: pd.DataFrame, link: pd.DataFrame, lineups: pd.DataFr
     return out
 
 
+def probable_lineups(link: pd.DataFrame, lineups: pd.DataFrame, targets: list[int], absent: set) -> tuple[pd.DataFrame, dict]:
+    """Composition probable de chaque club pour les matchs `targets` (match_id) : le dernier onze aligné,
+    moins les joueurs annoncés absents, complété par les joueurs les plus utilisés des cinq derniers matchs.
+    Renvoie (lignes de composition au format des compositions, {match_id: {"h": [...], "a": [...]}} des remplacements)."""
+    cg = pd.concat([link[["match_id", "game_id", "day", "home_club_id"]].rename(columns={"home_club_id": "club_id"}).assign(side="h"),
+                    link[["match_id", "game_id", "day", "away_club_id"]].rename(columns={"away_club_id": "club_id"}).assign(side="a")])
+    played = set(lineups["game_id"])
+    rows, changes = [], {}
+    for r in cg[cg.match_id.isin(targets)].itertuples():
+        if r.game_id in played:                                     # composition officielle déjà publiée
+            continue
+        past = cg[(cg.club_id == r.club_id) & (cg.day < r.day) & cg.game_id.isin(played)].sort_values("day")
+        if past.empty:
+            continue
+        last5 = lineups[(lineups.club_id == r.club_id) & lineups.game_id.isin(past.game_id.tail(5))]
+        prev = lineups[(lineups.club_id == r.club_id) & (lineups.game_id == past.game_id.iloc[-1]) & (lineups["type"] == "starting_lineup")]
+        keep = [p for p in prev.player_id if p not in absent]
+        usage = last5.assign(start=last5["type"] == "starting_lineup").groupby("player_id").agg(starts=("start", "sum"), apps=("start", "size"))
+        bench = [p for p in usage.sort_values(["starts", "apps"], ascending=False).index if p not in absent and p not in keep]
+        xi = keep + bench[: max(0, 11 - len(keep))]
+        rows += [{"game_id": r.game_id, "club_id": r.club_id, "player_id": p, "type": "starting_lineup"} for p in xi]
+        changes.setdefault(int(r.match_id), {"h": [], "a": []})[r.side] = [p for p in prev.player_id if p in absent]
+    return pd.DataFrame(rows, columns=["game_id", "club_id", "player_id", "type"]), changes
+
+
 def live_tables(combined: pd.DataFrame, tables: dict[str, pd.DataFrame], verbose: bool = False):
     """Renvoie (extra_link, extra_lineups, rapport) pour les matchs de la saison en cours de `combined`
     (historique + matchs à venir), à passer à build_player_features."""
@@ -156,7 +181,11 @@ def live_tables(combined: pd.DataFrame, tables: dict[str, pd.DataFrame], verbose
         absences = probable_absences(tables["vals"], extra_link, extra_lineups, names)
     except Exception:                                   # information d'affichage : jamais bloquant
         absences = {}
-    report = {"absences": absences, "events": len(ev), "matches_current": len(cur), "starters": len(starters),
+    names_by_team = {}
+    for (lg, espn), team in team_map.items():
+        names_by_team.setdefault(team, []).append(espn)
+    report = {"roster": lu_ev[["team", "name", "player_id", "club_id"]].drop_duplicates(["team", "player_id"]),
+              "team_names": names_by_team, "absences": absences, "events": len(ev), "matches_current": len(cur), "starters": len(starters),
               "matched_share": float((starters.how != "aucun").mean()) if len(starters) else float("nan"),
               "how": starters.how.value_counts().to_dict(),
               "unmatched": starters[starters.how == "aucun"].groupby("team")["name"].agg(lambda s: sorted(set(s))).to_dict(),
