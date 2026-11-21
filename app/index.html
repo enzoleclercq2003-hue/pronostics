@@ -265,6 +265,9 @@ h2 span{color:var(--ink3);font-weight:400;font-size:17px;letter-spacing:-.01em;m
 .stk{padding:4px 0 14px}.stk+.stk{border-top:1px solid var(--hair);padding-top:16px}
 .stn{font-size:14px;font-weight:600;margin-bottom:10px}.stk .pr{margin-bottom:9px}
 .stdead{display:inline-block;font-size:12px;padding:3px 11px;border-radius:999px;background:var(--track);color:var(--ink3)}.stdead.on{background:rgba(255,159,10,.15);color:#ff9f0a;font-weight:600}
+/* alerte désaccord avec le marché */
+.disal{margin:26px 0 0;border-radius:18px;padding:14px 18px;background:rgba(255,159,10,.10);box-shadow:inset 0 0 0 1px rgba(255,159,10,.35)}
+.disal b{color:#ff9f0a;font-size:14.5px;font-weight:650}.disal p{margin:6px 0 0;font-size:13.5px;color:var(--ink2);line-height:1.45}
 /* absences annoncées */
 .nw{padding:10px 0;border-top:1px solid var(--hair)}.nw:first-of-type{border-top:0;padding-top:2px}
 .nwh{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:14.5px}.nwh b{font-weight:600}
@@ -484,6 +487,8 @@ const I = {
     small: "En dessous d'une centaine de matchs, ce chiffre varie beaucoup d'une semaine à l'autre.", cum: 'Réussite cumulée', us: 'Notre modèle', books: 'Bookmakers',
     form: 'Forme récente', last5: '5 derniers matchs', elo: 'Niveau Elo', eloNote: 'Note de force de chaque équipe sur ses derniers matchs de championnat.',
     scores: 'Scores les plus probables', scoresNote: 'Selon le modèle de buts (Dixon-Coles), qui peut différer légèrement des probabilités finales.',
+    disT: 'Désaccord avec les bookmakers', disShort: 'Désaccord avec le marché',
+    disTxt: (o, mp, bp) => `Le modèle donne ${mp} % à « ${o} », les bookmakers ${bp} %. Sur les cinq saisons de test, quand l'écart dépasse 10 points, c'est le plus souvent le marché qui a raison : le modèle ignore probablement une information (blessure, transfert, changement d'entraîneur). Ce pronostic est à prendre avec prudence.`,
     vsBook: 'Face aux bookmakers', outcome: 'Issue', absent: 'Absents de la dernière feuille de match',
     absentNote: "Joueurs importants de l'effectif qui n'étaient ni titulaires ni remplaçants au dernier match : blessure, suspension ou choix de l'entraîneur. Ce n'est pas une liste de blessés confirmée.",
     nobody: 'Aucun joueur important absent.', fav: 'Ajouter aux favoris', unfav: 'Retirer des favoris', close: 'Fermer',
@@ -517,6 +522,8 @@ const I = {
     small: 'Below a hundred matches or so, this figure swings a lot from week to week.', cum: 'Cumulative accuracy', us: 'Our model', books: 'Bookmakers',
     form: 'Recent form', last5: 'Last 5 matches', elo: 'Elo rating', eloNote: 'Strength rating of each team over its latest league matches.',
     scores: 'Most likely scores', scoresNote: 'From the goals model (Dixon-Coles), which may differ slightly from the final probabilities.',
+    disT: 'Disagreement with the bookmakers', disShort: 'Disagrees with the market',
+    disTxt: (o, mp, bp) => `The model gives ${mp}% to “${o}”, the bookmakers ${bp}%. Over the five test seasons, when the gap exceeds 10 points the market is usually right: the model is probably missing some information (injury, transfer, managerial change). Treat this prediction with caution.`,
     vsBook: 'Against the bookmakers', outcome: 'Outcome', absent: 'Missing from the last matchday squad',
     absentNote: 'Key squad players who were neither starters nor substitutes in the last match: injury, suspension or manager’s choice. Not a confirmed injury list.',
     nobody: 'No key player missing.', fav: 'Add to favourites', unfav: 'Remove from favourites', close: 'Close',
@@ -592,6 +599,12 @@ $$('.tab').forEach(x => x.onclick = () => showTab(x.dataset.tab));
 
 // ---- calculs ----------------------------------------------------------------------------------
 const fav = m => m.p.indexOf(Math.max(...m.p));
+const DIS_GAP = 0.10;
+function disagreement(m) {               // {k, gap} pour l'issue la plus en désaccord avec le marché, ou null
+  if (!m.book) return null;
+  let k = 0; m.p.forEach((v, i) => { if (Math.abs(v - m.book[i]) > Math.abs(m.p[k] - m.book[k])) k = i; });
+  return Math.abs(m.p[k] - m.book[k]) >= DIS_GAP ? {k, gap: m.p[k] - m.book[k]} : null;
+}
 const when = m => `${fmt(m.kickoff, {weekday: 'short', day: 'numeric', month: 'short'})} · ${m.time}`;
 function range(ms) {
   const a = ms[0].kickoff, b = ms[ms.length - 1].kickoff;
@@ -629,7 +642,8 @@ function card(m, i) {
   const sc = topScores(m, 3).map(x => x.s).join(' · ');
   const d = m.detail, ab = d && [[m.home, d.home.absent.length], [m.away, d.away.absent.length]].filter(x => x[1] >= 3).sort((a, b) => b[1] - a[1])[0];
   const nn = d && d.home.news ? d.home.news.concat(d.away.news).filter(x => x.status === 'out').length : 0;
-  const right = m.level === 'composition' ? `<span class="ok">${esc(t('lvl').composition)}</span>` : nn ? `<span class="warnx">${esc(t('newsN', nn))}</span>` : ab ? `<span>${esc(t('absentN', nm(ab[0]), ab[1]))}</span>` : '';
+  const dg = disagreement(m);
+  const right = dg ? `<span class="warnx">⚠ ${esc(t('disShort'))}</span>` : m.level === 'composition' ? `<span class="ok">${esc(t('lvl').composition)}</span>` : nn ? `<span class="warnx">${esc(t('newsN', nn))}</span>` : ab ? `<span>${esc(t('absentN', nm(ab[0]), ab[1]))}</span>` : '';
   return `<article class="card" style="--i:${Math.min(i, 14)}" data-id="${esc(mid(m))}" tabindex="0" role="button" aria-label="${esc(nm(m.home))} – ${esc(nm(m.away))}">
     <div class="meta"><span>${esc(m.league_name)}</span><span>${esc(m.time)}</span></div>
     ${row(nm(m.home), 0, '', m.home)}${row(t('draw'), 1, 'draw')}${row(nm(m.away), 2, '', m.away)}
@@ -759,6 +773,8 @@ function openDetail(m) {
     const sc = topScores(m, 6);
     if (sc.length) html += `<h3>${esc(t('scores'))}</h3><div class="chips">${sc.map(x => `<div class="chipx"><b>${x.s}</b><span>${frn(x.p * 100)} %</span></div>`).join('')}</div><p class="note">${esc(t('scoresNote'))}</p>`;
   }
+  const dgs = disagreement(m);
+  if (dgs) html += `<div class="disal"><b>⚠ ${esc(t('disT'))}</b><p>${esc(t('disTxt', lab[dgs.k], num(m.p[dgs.k]), num(m.book[dgs.k])))}</p></div>`;
   if (m.book) html += `<h3>${esc(t('vsBook'))}</h3><div class="box"><div class="cmp"><span class="h">${esc(t('outcome'))}</span><span class="h r">${esc(cap(t('model')))}</span><span class="h r">${esc(cap(t('market')))}</span><span class="h r">${esc(cap(t('odd')))}</span>
       ${m.p.map((v, k) => `<span>${esc(lab[k])}</span><b class="r">${num(v)} %</b><span class="r">${num(m.book[k])} %</span><span class="r">${dec(m.odds[k])}</span>`).join('')}</div></div>`;
   if (d && d.home.news && (d.home.news.length || d.away.news.length)) html += `<h3>${esc(t('newsT'))}</h3><div class="two">${[[m.home, d.home], [m.away, d.away]].map(([team, td]) =>
