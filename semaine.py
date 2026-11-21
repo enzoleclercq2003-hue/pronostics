@@ -53,9 +53,11 @@ def compute(refresh: bool = True, progress=lambda msg: None, use_players: bool =
             notes.append(f"Mise à jour des résultats impossible ({type(exc).__name__}) : historique en cache utilisé.")
     predictor = joblib.load(cfg.MODELS_DIR / "best_pipeline.joblib")
     progress("Récupération du calendrier…")
-    week, label = upcoming_week(load_calendar(history), history)
+    calendar = load_calendar(history)
+    week, label = upcoming_week(calendar, history)
     info = {"label": label, "notes": notes, "history_end": history.Date.max(), "n_history": len(history),
-            "train_end": predictor.train_end, "generated": pd.Timestamp.now(tz=LOCAL_TZ)}
+            "train_end": predictor.train_end, "generated": pd.Timestamp.now(tz=LOCAL_TZ),
+            "recent_results": calendar.loc[calendar.played, ["league", "Date", "HomeTeam", "AwayTeam", "FTHG", "FTAG"]]}
     if week.empty:
         return week, info
     fixtures = pd.DataFrame({"date": week.Date.dt.strftime("%Y-%m-%d"), "home_team": week.HomeTeam, "away_team": week.AwayTeam})

@@ -137,3 +137,20 @@ def test_stakes(matches):
         masked.loc[masked.Date == date, RESULT_STATS] = np.nan
         part = build_stakes(masked).set_index("match_id")
         _assert_same(full.loc[mid], part.loc[mid], cols, f"enjeu, match {mid}")
+
+
+def test_formations(matches, full_features):
+    """Variables de formation : identiques après suppression du futur et masquage des résultats du jour."""
+    from src.formations import build_formation_features
+    from src.player_features import TM_DIR
+    if not (TM_DIR / "games.csv.gz").exists():
+        pytest.skip("données Transfermarkt non téléchargées")
+    feats = full_features.reset_index()
+    full = build_formation_features(matches, feats).set_index("match_id")
+    eligible = matches[matches.season.between(2015, 2025)]
+    for mid in np.random.default_rng(cfg.SEED).choice(eligible["match_id"].to_numpy(), size=4, replace=False):
+        date = matches.loc[matches.match_id == mid, "Date"].iloc[0]
+        masked = matches[matches.Date <= date].copy()
+        masked.loc[masked.Date == date, RESULT_STATS] = np.nan
+        part = build_formation_features(masked, feats).set_index("match_id")
+        _assert_same(full.loc[mid], part.loc[mid], list(full.columns), f"formations, match {mid}")

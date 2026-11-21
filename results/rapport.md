@@ -292,6 +292,30 @@ le gain est du même ordre (−0,0009, non significatif sur 1 752 matchs). La pr
 (52,6 % contre 52,8 % en walk-forward) : le gain porte sur la qualité des probabilités. L'ancien modèle est
 conservé sous `models/best_pipeline_v1.joblib`.
 
+### Compatibilité des systèmes de jeu (expérience, non retenue)
+
+Formations des équipes (Transfermarkt, 2013/14 à 2025/26, couverture 99,6 %), regroupées en huit familles
+(4-2-3-1, 4-3-3, 4-4-2, défense à trois avec deux ou trois attaquants...). Avant un match, chaque équipe est
+supposée jouer comme à son match précédent. Variables testées (`src/formations.py`, test anti-fuite dédié,
+`scripts/17_formations.py`, `formations_experiment.csv`) : famille de chaque équipe, « compatibilité » de
+l'affiche (résultat au-delà de l'attente Elo dans tous les matchs antérieurs opposant ces deux familles) et
+réussite de chaque équipe contre une défense à trois ou à quatre.
+
+Walk-forward 2020/21 à 2024/25, 8 981 matchs, modèles entraînés depuis 2014/15 :
+
+| Ajout | Régression logistique | LightGBM |
+|---|---|---|
+| Familles de formation | +0,0006 (p = 0,02, dégradation) | −0,0004 (p = 0,57) |
+| Compatibilité des affiches | +0,0000 (p = 0,49) | −0,0000 (p = 0,96) |
+| Réussite selon le système adverse | +0,0001 (p = 0,58) | +0,0001 (p = 0,92) |
+| Tout | +0,0006 (p = 0,01, dégradation) | −0,0014 (p = 0,06) |
+
+Aucun gain : une fois le niveau des équipes pris en compte, l'affiche des systèmes n'apporte pas
+d'information mesurable (l'écart entre affiches est minime, 0,024 point de résultat). Le léger mieux de
+LightGBM ne le rapproche même pas de la régression logistique sans formations (0,9845 contre 0,9827).
+Les formations sont en outre des étiquettes approximatives, et celle du match à venir n'est qu'une
+supposition. Variables non intégrées.
+
 ## 9. Limites
 
 - Le test final ne compte que 1 752 matchs : les intervalles de confiance sont larges (± 2,3 points de précision).

@@ -261,6 +261,10 @@ h2 span{color:var(--ink3);font-weight:400;font-size:17px;letter-spacing:-.01em;m
 .legendx{display:flex;gap:18px;font-size:12.5px;color:var(--ink2);margin-top:10px}
 .legendx i{display:inline-block;width:14px;height:3px;border-radius:3px;margin-right:7px;vertical-align:middle}
 
+/* illustration Enjeu */
+.stk{padding:4px 0 14px}.stk+.stk{border-top:1px solid var(--hair);padding-top:16px}
+.stn{font-size:14px;font-weight:600;margin-bottom:10px}.stk .pr{margin-bottom:9px}
+.stdead{display:inline-block;font-size:12px;padding:3px 11px;border-radius:999px;background:var(--track);color:var(--ink3)}.stdead.on{background:rgba(255,159,10,.15);color:#ff9f0a;font-weight:600}
 /* absences annoncées */
 .nw{padding:10px 0;border-top:1px solid var(--hair)}.nw:first-of-type{border-top:0;padding-top:2px}
 .nwh{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:14.5px}.nwh b{font-weight:600}
@@ -398,8 +402,16 @@ footer{color:var(--ink3);font-size:12px;border-top:1px solid var(--hair);margin-
     </div>
 
     <div class="feat">
+      <div><span class="eyebrow g">Enjeu</span><h2>Ce qu'il reste à jouer.</h2>
+        <p>Avant chaque match, le classement dit si chaque équipe peut encore viser le titre, l'Europe ou se sauver, compte tenu des points restant en jeu, et à quel point c'est serré. Une équipe qui n'a plus rien à jouer fait moins bien que sa force ne le laisse prévoir. Sur le dernier quart de saison, ces variables réduisent la log loss de 0,005 en validation.</p>
+        <span class="formula">enjeu = 1 − écart / (points restants + 3)</span></div>
+      <div class="viz"><div class="perf" id="stakesviz" role="img" aria-label="Enjeu de deux équipes"></div>
+        <p class="cap">Schéma : enjeu de deux équipes à cinq journées de la fin.</p></div>
+    </div>
+
+    <div class="feat">
       <div><span class="eyebrow g">Effectifs</span><h2>La valeur du onze aligné.</h2>
-        <p>Les compositions de chaque match sont rattachées à la valeur marchande des joueurs. Le modèle utilise la valeur du dernier onze aligné et celle des onze joueurs les plus chers de l'effectif récent. Dès que la composition officielle est publiée, environ une heure avant le coup d'envoi, elle remplace cette estimation.</p>
+        <p>Les compositions de chaque match sont rattachées à la valeur marchande des joueurs. Le modèle utilise la valeur du dernier onze aligné et celle des onze joueurs les plus chers de l'effectif récent. Dès que la composition officielle est publiée, environ une heure avant le coup d'envoi, elle remplace cette estimation. Les absences annoncées dans l'actualité (flux publics de neuf médias) sont aussi repérées automatiquement : un titulaire annoncé absent est retiré du onze probable.</p>
         <span class="formula">v = ln Σ<sub>joueurs</sub> valeur<sub>i</sub></span></div>
       <div class="viz">
         <svg viewBox="0 0 300 330" role="img" aria-label="Onze joueurs, taille proportionnelle à leur valeur" style="max-height:330px">
@@ -429,12 +441,12 @@ footer{color:var(--ink3);font-size:12px;border-top:1px solid var(--hair);margin-
 
     <div class="feat">
       <div><span class="eyebrow g">Résultats</span><h2>Ce que ça vaut, sans embellir.</h2>
-        <p>Sur le test final 2025/26 (1 752 matchs), le modèle donne 52,5 % de pronostics justes pour une log loss de 0,988. Les bookmakers font 53,3 % et 0,978 : l'écart est faible mais statistiquement significatif. Les variables d'effectif réduisent ensuite la log loss de 0,001 à 0,003 en validation. Les probabilités sont calibrées : une issue annoncée à 60 % se réalise environ six fois sur dix.</p></div>
+        <p>Mesuré sur le test final 2025/26 (1 752 matchs), le modèle de base donne 52,5 % de pronostics justes pour une log loss de 0,988, contre 53,3 % et 0,978 pour les bookmakers. Les ajouts testés depuis réduisent chacun la log loss en validation : valeur des effectifs −0,001, composition officielle −0,003, enjeu −0,001 (−0,005 en fin de saison). Leur effet combiné n'a pas été mesuré d'un bloc : nous estimons la version complète à environ 53 % de pronostics justes, 53 à 54 % quand la composition officielle est publiée, encore un peu en dessous des bookmakers. Les probabilités sont calibrées : une issue annoncée à 60 % se réalise environ six fois sur dix. L'onglet Suivi donnera bientôt le chiffre réel.</p></div>
       <div class="viz"><div class="perf" id="perf" role="img" aria-label="Précision comparée"></div>
-        <p class="cap">Part de pronostics justes, test final 2025/26.</p></div>
+        <p class="cap">Part de pronostics justes, mesurée sur le test final 2025/26, sauf la version complète (estimation).</p></div>
     </div>
 
-    <p class="fine" style="margin-top:8px">Limites : le modèle ignore blessures et suspensions annoncées, et les valeurs marchandes datent de juin 2026. En test sur six saisons, miser là où il s'écarte des bookmakers a perdu de l'argent. Estimation statistique, pas un conseil de pari.</p>
+    <p class="fine" style="margin-top:8px">Limites : les absences annoncées sont repérées automatiquement, donc imparfaitement, et leur apport n'est pas encore mesuré ; les valeurs marchandes datent de juin 2026. En test sur six saisons, miser là où le modèle s'écarte des bookmakers a perdu de l'argent. Estimation statistique, pas un conseil de pari.</p>
   </section>
   <footer><span id="footer"></span> <button class="link" id="quit" style="font-size:12px;margin-left:8px">Arrêter l'application</button></footer>
 </main>
@@ -482,7 +494,9 @@ const I = {
     newsT: 'Absences annoncées', newsN: n => `${n} absent${n > 1 ? 's' : ''} annoncé${n > 1 ? 's' : ''}`, longT: 'longue durée',
     conf: {'confirmée': 'Absent · confirmé', 'probable': 'Absent · probable', 'incertain': 'Incertain'},
     newsNote: "Repérées automatiquement dans les flux d'actualité publics (BBC, The Guardian, L'Équipe, AS, Gazzetta, Sportschau…). « Confirmé » : annoncé par au moins deux médias, ou sans ambiguïté (opération, forfait…). Les absences confirmées ou probables d'un titulaire habituel sont intégrées aux probabilités ; vérifiez la source en cas de doute.",
-    viz: {hda: ['domicile', 'nul', 'extérieur'], perf: ['Hasard', 'Toujours miser sur le domicile', 'Elo seul', 'Notre modèle', 'Bookmakers'],
+    viz: {hda: ['domicile', 'nul', 'extérieur'], perf: ['Hasard', 'Toujours miser sur le domicile', 'Elo seul', 'Notre modèle de base', 'Version complète (estimation)', 'Bookmakers'],
+          perfPub: ['Hasard', 'Toujours miser sur le domicile', 'Elo seul', 'Notre modèle', 'Bookmakers'],
+          st: ['Titre', 'Europe', 'Maintien', 'Plus rien à jouer'], stTeams: ['Équipe A, en course pour l’Europe', 'Équipe B, milieu de tableau'],
           models: {'Bookmakers': 'Bookmakers', 'Régression logistique': 'Régression logistique', 'Perceptron multicouche': 'Perceptron multicouche', 'Dixon-Coles seul': 'Dixon-Coles seul', 'Elo seul': 'Elo seul'},
           sl: ['Buts attendus domicile ', 'Buts attendus extérieur ']} },
   en: { matchs: 'Matches', top: 'Top', suivi: 'Track record', modele: 'Model', refresh: 'Refresh', loading: 'Loading', calc: s => `Computing · ${s}s`,
@@ -513,7 +527,9 @@ const I = {
     newsT: 'Reported absences', newsN: n => `${n} reported absent`, longT: 'long term',
     conf: {'confirmée': 'Out · confirmed', 'probable': 'Out · likely', 'incertain': 'Doubtful'},
     newsNote: 'Picked up automatically from public news feeds (BBC, The Guardian, L’Équipe, AS, Gazzetta, Sportschau…). “Confirmed”: reported by at least two outlets, or unambiguous (surgery, ruled out…). Confirmed or likely absences of regular starters are built into the probabilities; check the source when in doubt.',
-    viz: {hda: ['home', 'draw', 'away'], perf: ['Chance', 'Always pick the home side', 'Elo only', 'Our model', 'Bookmakers'],
+    viz: {hda: ['home', 'draw', 'away'], perf: ['Chance', 'Always pick the home side', 'Elo only', 'Our base model', 'Full version (estimate)', 'Bookmakers'],
+          perfPub: ['Chance', 'Always pick the home side', 'Elo only', 'Our model', 'Bookmakers'],
+          st: ['Title', 'Europe', 'Survival', 'Nothing left to play for'], stTeams: ['Team A, chasing Europe', 'Team B, mid-table'],
           models: {'Bookmakers': 'Bookmakers', 'Régression logistique': 'Logistic regression', 'Perceptron multicouche': 'Multilayer perceptron', 'Dixon-Coles seul': 'Dixon-Coles only', 'Elo seul': 'Elo only'},
           sl: ['Expected home goals ', 'Expected away goals ']} } };
 const t = (k, ...a) => { const s = I[LANG][k] ?? I.fr[k]; return typeof s === 'function' ? s(...a) : s; };
@@ -775,23 +791,34 @@ const EN_MODEL = ['Model', 'Under the hood.', 'Every probability comes out of a 
   'Dynamic Elo', 'Each team’s strength, continuously.', 'Every team carries a rating updated after each match, weighted by goal difference, with regression to the mean between seasons. Parameters are tuned by chronological validation: K-factor of 12, season carry-over of 0.9, promoted sides entering at −80 points.', 'Sketch: the rating rises after an unexpected win and falls after an unexpected loss.',
   'Dixon-Coles', 'A model of goals.', 'Each team’s goals follow a Poisson distribution whose attack and defence parameters are estimated by maximum likelihood, on a three-year rolling window with exponential decay (240-day half-life). A dependence term τ corrects the frequency of low scores.', 'Try it: each cell is the probability of a score (rows: home goals, columns: away goals).',
   'Recent form', 'The latest matches weigh more.', 'Points, goals, shots, shots on target and corners are summarised by exponentially weighted moving averages, computed separately at home and away. Only strictly earlier matches are used: no statistic from the match being predicted enters the calculation.', 'Sketch: weight of the last ten matches, most recent first.',
-  'Squads', 'The value of the starting eleven.', 'Each match’s line-ups are linked to the players’ market values. The model uses the value of the last starting eleven and that of the eleven most valuable players in the recent squad. As soon as the official line-up is published, about an hour before kick-off, it replaces this estimate.', 'Sketch: each player counts according to his market value.',
+  'Stakes', 'What is left to play for.', 'Before each match, the table tells whether each team can still chase the title, Europe or survival given the points still at stake, and how tight it is. A team with nothing left to play for does worse than its strength suggests. Over the last quarter of the season, these features cut log loss by 0.005 in validation.', 'Sketch: stakes for two teams with five matchdays left.',
+  'Squads', 'The value of the starting eleven.', 'Each match’s line-ups are linked to the players’ market values. The model uses the value of the last starting eleven and that of the eleven most valuable players in the recent squad. As soon as the official line-up is published, about an hour before kick-off, it replaces this estimate. Absences reported in the news (public feeds from nine outlets) are also picked up automatically: a regular starter reported out is removed from the likely eleven.', 'Sketch: each player counts according to his market value.',
   'Algorithm', 'Simple, because it is the best.', 'Standardised features feed a multinomial logistic regression with strong L2 regularisation (C = 3.4 × 10⁻⁴), tuned by Bayesian optimisation (Optuna, TPE sampler, 100 trials). It was compared with LightGBM, XGBoost, CatBoost, HistGradientBoosting, Random Forest, ExtraTrees and a multilayer perceptron: all sit within 0.002 of log loss.', 'Walk-forward log loss, 8,981 matches: further left is better.',
   'Validation', 'Always tested on the unknown.', 'Validation is strictly chronological, walk-forward: for each season, the model is trained on the past only. The last full season served as the final test, once. Automated tests check for data leakage: removing the future must not change any feature.', 'Grey: training. Gradient: season under test.',
-  'Results', 'What it is worth, unvarnished.', 'On the 2025/26 final test (1,752 matches), the model gets 52.5% of picks right with a log loss of 0.988. Bookmakers reach 53.3% and 0.978: the gap is small but statistically significant. Squad features then cut log loss by 0.001 to 0.003 in validation. Probabilities are calibrated: an outcome rated 60% happens about six times in ten.', 'Share of correct picks, 2025/26 final test.',
-  'Limits: the model ignores announced injuries and suspensions, and market values date from June 2026. Over six test seasons, betting where it disagrees with the bookmakers lost money. Statistical estimate, not betting advice.'];
+  'Results', 'What it is worth, unvarnished.', 'Measured on the 2025/26 final test (1,752 matches), the base model gets 52.5% of picks right with a log loss of 0.988, against 53.3% and 0.978 for the bookmakers. The additions tested since each cut log loss in validation: squad value −0.001, official line-up −0.003, stakes −0.001 (−0.005 late in the season). Their combined effect has not been measured in one go: we estimate the full version at about 53% correct picks, 53 to 54% once the official line-up is out, still slightly below the bookmakers. Probabilities are calibrated: an outcome rated 60% happens about six times in ten. The Track record tab will soon give the real figure.', 'Share of correct picks, measured on the 2025/26 final test, except the full version (estimate).',
+  'Limits: reported absences are picked up automatically, hence imperfectly, and their effect is not measured yet; market values date from June 2026. Over six test seasons, betting where the model disagrees with the bookmakers lost money. Statistical estimate, not betting advice.'];
 const MODEL_SEL = '#tab-modele .eyebrow, #tab-modele h1, #tab-modele .hero p, #tab-modele .kpis span, #tab-modele .node b, #tab-modele .node span, #tab-modele h2, #tab-modele .feat p, #tab-modele > .fine';
 let FR_MODEL = null;
 // Version publique sans données joueurs : l'onglet Modèle ne doit décrire que ce qui est réellement utilisé.
 function stripPlayers() {
-  const feats = $$('#tab-modele .feat'), about = /effectif|marchande|composition|squad|market value|line-up/i;
-  if (feats.length === 7) feats[3].remove();
+  const feats = $$('#tab-modele .feat');
+  if (feats[4]) feats[4].style.display = 'none';           // section Effectifs (masquée : l'ordre des textes traduits reste stable)
   const nodes = $$('#tab-modele .node span');
   if (nodes[0]) nodes[0].textContent = LANG === 'en' ? 'Results, shots, corners, cards' : 'Résultats, tirs, corners, cartons';
   if (nodes[1]) nodes[1].textContent = LANG === 'en' ? 'Elo, Dixon-Coles, form, stakes' : 'Elo, Dixon-Coles, forme, enjeu';
-  [...$$('#tab-modele .feat:last-of-type p:not(.cap)'), ...$$('#tab-modele > .fine')].forEach(p => {
-    p.textContent = p.textContent.replace(/,? et les valeurs marchandes datent de juin 2026|,? and market values date from June 2026/, '').split(/(?<=\.)\s+/).filter(s => !about.test(s)).join(' '); });
+  const res = $$('#tab-modele .feat:last-of-type p');
+  const P = PUBLIC_TEXT[LANG] || PUBLIC_TEXT.fr;
+  if (res[0]) res[0].textContent = P.results;
+  if (res[1]) res[1].textContent = P.cap;
+  const fine = $('#tab-modele > .fine'); if (fine) fine.textContent = P.limits;
 }
+const PUBLIC_TEXT = {
+  fr: {results: "Mesuré sur le test final 2025/26 (1 752 matchs), le modèle donne 52,5 % de pronostics justes pour une log loss de 0,988, contre 53,3 % et 0,978 pour les bookmakers : l'écart est faible mais statistiquement significatif. L'enjeu sportif, ajouté depuis, réduit encore la log loss de 0,001 sur la saison et de 0,005 en fin de saison. Les probabilités sont calibrées : une issue annoncée à 60 % se réalise environ six fois sur dix. L'onglet Suivi donnera bientôt le chiffre réel.",
+       cap: 'Part de pronostics justes, test final 2025/26.',
+       limits: "Limites : le modèle ignore les blessures et suspensions annoncées. En test sur six saisons, miser là où il s'écarte des bookmakers a perdu de l'argent. Estimation statistique, pas un conseil de pari."},
+  en: {results: 'Measured on the 2025/26 final test (1,752 matches), the model gets 52.5% of picks right with a log loss of 0.988, against 53.3% and 0.978 for the bookmakers: the gap is small but statistically significant. Match stakes, added since, cut log loss by a further 0.001 over the season and 0.005 late in the season. Probabilities are calibrated: an outcome rated 60% happens about six times in ten. The Track record tab will soon give the real figure.',
+       cap: 'Share of correct picks, 2025/26 final test.',
+       limits: 'Limits: the model ignores announced injuries and suspensions. Over six test seasons, betting where it disagrees with the bookmakers lost money. Statistical estimate, not betting advice.'}};
 function applyLang() {
   root.lang = LANG;
   $$('.tab').forEach(x => x.textContent = t(x.dataset.tab));
@@ -827,8 +854,15 @@ function drawModel() {
   const first = 2005, n = 21;
   $('#wf').innerHTML = [2020, 2021, 2022, 2023, 2024, 2025].map(s => `<div class="wr"><span>${s}/${String(s + 1).slice(2)}</span><span class="bar">${
     Array.from({length: n}, (_, k) => `<i class="${first + k < s ? 'tr' : first + k === s ? 'te' : ''}" style="flex:1"></i>`).join('')}</span></div>`).join('');
-  const vals = [33.3, 44.0, 50.9, 52.5, 53.3], cls = ['', '', '', 'us', 'bk'];
-  $('#perf').innerHTML = t('viz').perf.map((n, i) => `<div class="pr ${cls[i]}"><div><span>${n}</span><b>${frn(vals[i])} %</b></div><i style="width:${(vals[i] / 60 * 100).toFixed(1)}%"></i></div>`).join('');
+  // site public : modèle mesuré seulement ; application locale : base mesurée + version complète estimée
+  const pub = SITE && SITE.players === false;
+  const vals = pub ? [33.3, 44.0, 50.9, 52.5, 53.3] : [33.3, 44.0, 50.9, 52.5, 53.0, 53.3];
+  const cls = pub ? ['', '', '', 'us', 'bk'] : ['', '', '', '', 'us', 'bk'];
+  const st = t('viz').st, teams = t('viz').stTeams, demo = [[0, .62, 0, 0], [0, 0, .08, 1]];
+  $('#stakesviz').innerHTML = teams.map((tm, j) => `<div class="stk"><div class="stn">${esc(tm)}</div>${st.map((lab, i) => i < 3
+      ? `<div class="pr ${demo[j][i] > 0 ? 'us' : ''}"><div><span>${lab}</span><b>${frn(demo[j][i] * 100, 0)} %</b></div><i style="width:${(demo[j][i] * 100).toFixed(0)}%"></i></div>`
+      : `<div class="stdead ${demo[j][3] ? 'on' : ''}">${lab}</div>`).join('')}</div>`).join('');
+  $('#perf').innerHTML = (pub ? t('viz').perfPub : t('viz').perf).map((n, i) => `<div class="pr ${cls[i]}"><div><span>${n}</span><b>${frn(vals[i])} %</b></div><i style="width:${(vals[i] / 60 * 100).toFixed(1)}%"></i></div>`).join('');
 }
 $('#sL').oninput = $('#sM').oninput = drawHeat;
 let counted = false;

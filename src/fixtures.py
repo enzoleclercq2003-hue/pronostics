@@ -60,7 +60,8 @@ def load_calendar(history: pd.DataFrame, season: int = cfg.CURRENT_SEASON) -> pd
         for col in ("HomeTeam", "AwayTeam"):
             f[col] = [mapping.get(t) or resolve_team(t, known) for t in f[col]]
         f["played"] = f["HomeTeamScore"].notna()
-        parts.append(f[["league", "kickoff", "Date", "HomeTeam", "AwayTeam", "played", "RoundNumber"]])
+        f["FTHG"], f["FTAG"] = pd.to_numeric(f["HomeTeamScore"], errors="coerce"), pd.to_numeric(f["AwayTeamScore"], errors="coerce")
+        parts.append(f[["league", "kickoff", "Date", "HomeTeam", "AwayTeam", "played", "RoundNumber", "FTHG", "FTAG"]])
     return pd.concat(parts, ignore_index=True).sort_values(["kickoff", "league", "HomeTeam"]).reset_index(drop=True)
 
 

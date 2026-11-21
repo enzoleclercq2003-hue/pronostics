@@ -39,6 +39,7 @@ uv pip install --python .venv/Scripts/python.exe -r requirements.txt
 | 14 | `python scripts/14_player_ext.py` | Expérience : indisponibilités, postes, âge, banc (non retenue) |
 | 15 | `python scripts/15_stakes.py` | Expérience : enjeu sportif (titre, Europe, maintien) |
 | 16 | `python scripts/16_retrain_with_stakes.py` | Modèle de production avec l'enjeu |
+| 17 | `python scripts/17_formations.py` | Expérience : compatibilité des systèmes de jeu (non retenue) |
 
 ## Prédictions de la semaine (automatique)
 

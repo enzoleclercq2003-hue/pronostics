@@ -85,6 +85,15 @@ def build_payload(df, info, log_path=None) -> dict:
     if LOG.exists():
         log = pd.read_csv(LOG, parse_dates=["Date"])
         hist = load_processed()[["league", "Date", "HomeTeam", "AwayTeam", "FTHG", "FTAG", "FTR"]]
+        recent = info.get("recent_results")
+        if recent is not None and len(recent):
+            # football-data.co.uk publie les résultats avec un à trois jours de retard : on complète avec le calendrier
+            recent = recent.dropna(subset=["FTHG", "FTAG"]).copy()
+            recent["FTR"] = np.where(recent.FTHG > recent.FTAG, "H", np.where(recent.FTHG < recent.FTAG, "A", "D"))
+            season = lambda d: d.year if d.month >= 7 else d.year - 1          # une affiche par saison et par terrain
+            known = {(l, h, a, season(d)) for l, h, a, d in zip(hist.league, hist.HomeTeam, hist.AwayTeam, hist.Date)}
+            recent = recent[[(l, h, a, season(d)) not in known for l, h, a, d in zip(recent.league, recent.HomeTeam, recent.AwayTeam, recent.Date)]]
+            hist = pd.concat([hist, recent[hist.columns]], ignore_index=True)
         j = log.merge(hist, on=["league", "HomeTeam", "AwayTeam"], suffixes=("", "_res"))
         j = j[(j.Date_res - j.Date).abs().dt.days <= 3].sort_values("Date_res", ascending=False)
         if len(j):
