@@ -100,3 +100,54 @@ def load_odds() -> pd.DataFrame:
             if c in f.columns:
                 f[out] = f[out].fillna(pd.to_numeric(f[c], errors="coerce"))
     return f[["league", "HomeTeam", "AwayTeam", "odds_h", "odds_d", "odds_a"]].dropna()
+
+
+# ---- scores en direct -------------------------------------------------------------------------------
+# football-data.co.uk et le calendrier publient les scores avec plusieurs heures à plusieurs jours de
+# retard ; les tableaux de scores publics d'ESPN les donnent dès la fin du match. Seuls les scores
+# (des faits) sont repris, rattachés aux affiches du calendrier.
+ESPN_SLUGS = {"E0": "eng.1", "SP1": "esp.1", "I1": "ita.1", "D1": "ger.1", "F1": "fra.1"}
+ESPN_URL = "https://site.api.espn.com/apis/site/v2/sports/soccer/{slug}/scoreboard?dates={day:%Y%m%d}"
+
+
+def _simil(a: str, b: str) -> float:
+    from difflib import SequenceMatcher
+    import unicodedata
+    n = lambda s: "".join(c for c in unicodedata.normalize("NFKD", s.lower()) if c.isalnum() or c == " ")
+    a, b = n(a), n(b)
+    if not a or not b:
+        return 0.0
+    if a in b or b in a:                           # « Leeds » / « Leeds United »
+        return 1.0
+    return SequenceMatcher(None, a, b).ratio()
+
+
+def live_results(calendar: pd.DataFrame, days: int = 4) -> pd.DataFrame:
+    """Scores des matchs terminés des `days` derniers jours, aux noms d'équipes du calendrier."""
+    rows = []
+    today = pd.Timestamp.now(tz="UTC").normalize().tz_localize(None)
+    for league, slug in ESPN_SLUGS.items():
+        if league not in cfg.LEAGUES:
+            continue
+        for k in range(days + 1):
+            day = today - pd.Timedelta(days=k)
+            fixtures = calendar[(calendar.league == league) & (calendar.Date == day)]
+            if fixtures.empty:
+                continue
+            try:
+                data = json.loads(urllib.request.urlopen(urllib.request.Request(ESPN_URL.format(slug=slug, day=day), headers=HEADERS), timeout=20).read())
+            except Exception:
+                continue
+            for e in data.get("events", []):
+                if not e["status"]["type"].get("completed"):
+                    continue
+                c = {x["homeAway"]: x for x in e["competitions"][0]["competitors"]}
+                h, a = c["home"]["team"]["displayName"], c["away"]["team"]["displayName"]
+                # l'affiche du jour dont les deux noms ressemblent le plus (une dizaine de candidats au plus)
+                score = [(_simil(h, r.HomeTeam) + _simil(a, r.AwayTeam), r) for r in fixtures.itertuples()]
+                best, r = max(score, key=lambda x: x[0])
+                if best < 1.1:                       # rapprochement incertain : on s'abstient
+                    continue
+                rows.append({"league": league, "Date": r.Date, "HomeTeam": r.HomeTeam, "AwayTeam": r.AwayTeam,
+                             "FTHG": float(c["home"].get("score") or 0), "FTAG": float(c["away"].get("score") or 0)})
+    return pd.DataFrame(rows, columns=["league", "Date", "HomeTeam", "AwayTeam", "FTHG", "FTAG"])

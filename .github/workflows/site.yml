@@ -1,10 +1,10 @@
 # Met à jour le site hébergé : recalcule les prédictions et publie le dossier site/ sur GitHub Pages.
-# Déclenchement : trois fois par jour, à chaque envoi sur la branche principale, ou à la main (onglet Actions).
+# Déclenchement : sept fois par jour, à chaque envoi sur la branche principale, ou à la main (onglet Actions).
 name: Mettre à jour le site
 
 on:
   schedule:
-    - cron: "15 5,11,17 * * *"      # heures UTC
+    - cron: "15 5,11,15,17,19,21,23 * * *"   # heures UTC : toutes les deux heures l'après-midi et le soir, pour suivre les résultats
   push:
     branches: [main]
     paths-ignore: ["results/predictions_log_public.csv"]

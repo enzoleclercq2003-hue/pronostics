@@ -38,6 +38,18 @@ def french_date(ts: pd.Timestamp) -> str:
     return f"{DAYS[ts.day_of_week]} {ts.day} {MONTHS[ts.month - 1]}"
 
 
+def recent_results(calendar: pd.DataFrame) -> pd.DataFrame:
+    """Scores récents : calendrier, complété par les scores en direct (publiés dès la fin des matchs)."""
+    from src.fixtures import live_results
+    cols = ["league", "Date", "HomeTeam", "AwayTeam", "FTHG", "FTAG"]
+    out = calendar.loc[calendar.played, cols]
+    try:
+        out = pd.concat([out, live_results(calendar)], ignore_index=True)
+    except Exception:                                    # source indisponible : on garde le calendrier
+        pass
+    return out.drop_duplicates(["league", "HomeTeam", "AwayTeam", "Date"], keep="first")
+
+
 def compute(refresh: bool = True, progress=lambda msg: None, use_players: bool = True) -> tuple[pd.DataFrame, dict]:
     notes = []
     cached = cfg.PROCESSED_DIR / "matches.pkl"
@@ -57,7 +69,7 @@ def compute(refresh: bool = True, progress=lambda msg: None, use_players: bool =
     week, label = upcoming_week(calendar, history)
     info = {"label": label, "notes": notes, "history_end": history.Date.max(), "n_history": len(history),
             "train_end": predictor.train_end, "generated": pd.Timestamp.now(tz=LOCAL_TZ),
-            "recent_results": calendar.loc[calendar.played, ["league", "Date", "HomeTeam", "AwayTeam", "FTHG", "FTAG"]]}
+            "recent_results": recent_results(calendar)}
     if week.empty:
         return week, info
     fixtures = pd.DataFrame({"date": week.Date.dt.strftime("%Y-%m-%d"), "home_team": week.HomeTeam, "away_team": week.AwayTeam})
