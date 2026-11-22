@@ -265,6 +265,22 @@ h2 span{color:var(--ink3);font-weight:400;font-size:17px;letter-spacing:-.01em;m
 .stk{padding:4px 0 14px}.stk+.stk{border-top:1px solid var(--hair);padding-top:16px}
 .stn{font-size:14px;font-weight:600;margin-bottom:10px}.stk .pr{margin-bottom:9px}
 .stdead{display:inline-block;font-size:12px;padding:3px 11px;border-radius:999px;background:var(--track);color:var(--ink3)}.stdead.on{background:rgba(255,159,10,.15);color:#ff9f0a;font-weight:600}
+/* onglet Suivi */
+.kps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:6px}
+.kp{background:var(--surface);border-radius:24px;padding:22px 24px;box-shadow:inset 0 0 0 1px var(--hair);display:flex;flex-direction:column}
+.kp .kl{font-size:14px;color:var(--ink2)}.kp b{font-size:64px;line-height:1.05;font-weight:650;letter-spacing:-.05em;margin:4px 0 2px;display:inline-block}
+.kp b small{font-size:.42em;color:var(--ink3);-webkit-text-fill-color:var(--ink3);margin-left:3px}.kp .kn{font-size:13.5px;color:var(--ink3)}
+.dt{width:100%;border-collapse:collapse;font-size:14.5px;font-variant-numeric:tabular-nums}.dt th{font-size:12px;font-weight:500;color:var(--ink3);text-align:left;padding:0 0 8px}
+.dt td{padding:10px 0;border-top:1px solid var(--hair)}.dt .r{text-align:right}
+.svl .sv{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:14px;align-items:center;padding:16px 0;border-bottom:1px solid var(--hair);list-style:none}
+.svl .sv:last-child{border-bottom:0}.sc2{font-variant-numeric:tabular-nums;color:var(--ink2);margin:0 4px}
+.svp{display:grid;grid-template-columns:22px 1fr;align-items:center;gap:10px;font-size:14px}.svp .who{display:none}
+.svp .pp{color:var(--ink3);font-size:12.5px;margin-left:6px;white-space:nowrap}.svp .na{grid-column:1/-1;color:var(--ink3);font-size:13px}
+.mk{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700}
+.mk.y{background:rgba(48,209,88,.16);color:var(--good)}.mk.n{background:rgba(255,69,58,.14);color:var(--bad)}
+.svh{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:14px;padding:0 24px 8px;font-size:12px;color:var(--ink3)}
+@media (max-width:720px){.svh{display:none}}
+@media (max-width:720px){.svl .sv{grid-template-columns:1fr;gap:8px}.svp{grid-template-columns:90px 22px 1fr}.svp .who{display:inline;font-size:12px;color:var(--ink3)}.svp .na{grid-column:2/-1}.kp b{font-size:48px}}
 /* alerte désaccord avec le marché */
 .disal{margin:26px 0 0;border-radius:18px;padding:14px 18px;background:rgba(255,159,10,.10);box-shadow:inset 0 0 0 1px rgba(255,159,10,.35)}
 .disal b{color:#ff9f0a;font-size:14.5px;font-weight:650}.disal p{margin:6px 0 0;font-size:13.5px;color:var(--ink2);line-height:1.45}
@@ -484,7 +500,13 @@ const I = {
     gapWarn: "En test sur six saisons, miser sur ces écarts a perdu de l'argent : quand le modèle et le marché divergent, le marché a le plus souvent raison. Information, pas recommandation.",
     soon: 'Bientôt ici.', soonSub: 'Chaque prédiction est enregistrée, puis comparée au résultat une fois le match joué.',
     hits: (h, n) => `de pronostics justes, ${h} sur ${n}.`, bookAcc: (a, n) => ` Bookmakers : ${a} % sur ${n} matchs.`,
-    small: "En dessous d'une centaine de matchs, ce chiffre varie beaucoup d'une semaine à l'autre.", cum: 'Réussite cumulée', us: 'Notre modèle', books: 'Bookmakers',
+    small: "En dessous d'une centaine de matchs, ce chiffre varie beaucoup d'une semaine à l'autre.",
+    trackTitle: 'Le bilan.', trackSub: n => `Notre modèle face aux bookmakers, sur les ${n} mêmes matchs déjà joués.`,
+    trackSubNoOdds: n => `Nos pronostics sur les ${n} matchs déjà joués.`, ofN: (k, n) => `${k} justes sur ${n}`,
+    trackExtra: (n, k) => `${n} autre${n > 1 ? 's' : ''} match${n > 1 ? 's' : ''} suivi${n > 1 ? 's' : ''} sans cotes publiées, donc hors comparaison (modèle : ${k} juste${k > 1 ? 's' : ''}).`,
+    byDay: 'Par journée', day: 'Journée', matchesH: 'Matchs', allMatches: 'Tous les matchs', noOddsShort: 'pas de cotes',
+    cumSame: 'Les deux courbes se superposent : le modèle et les bookmakers ont désigné le même favori dans chacun de ces matchs.',
+    cumNote: (n, tot) => `Les deux courbes portent sur les mêmes ${n} matchs (sur ${tot}), ceux dont les cotes étaient publiées, et avancent ensemble match par match.`, cum: 'Réussite cumulée', us: 'Notre modèle', books: 'Bookmakers',
     form: 'Forme récente', last5: '5 derniers matchs', elo: 'Niveau Elo', eloNote: 'Note de force de chaque équipe sur ses derniers matchs de championnat.',
     scores: 'Scores les plus probables', scoresNote: 'Selon le modèle de buts (Dixon-Coles), qui peut différer légèrement des probabilités finales.',
     disT: 'Désaccord avec les bookmakers', disShort: 'Désaccord avec le marché',
@@ -519,7 +541,13 @@ const I = {
     gapWarn: 'Over six test seasons, betting on these gaps lost money: when the model and the market disagree, the market is usually right. Information, not a recommendation.',
     soon: 'Coming soon.', soonSub: 'Every prediction is logged, then compared with the result once the match is played.',
     hits: (h, n) => `correct picks, ${h} of ${n}.`, bookAcc: (a, n) => ` Bookmakers: ${a}% over ${n} matches.`,
-    small: 'Below a hundred matches or so, this figure swings a lot from week to week.', cum: 'Cumulative accuracy', us: 'Our model', books: 'Bookmakers',
+    small: 'Below a hundred matches or so, this figure swings a lot from week to week.',
+    trackTitle: 'The record.', trackSub: n => `Our model against the bookmakers, on the same ${n} matches already played.`,
+    trackSubNoOdds: n => `Our picks on the ${n} matches already played.`, ofN: (k, n) => `${k} correct out of ${n}`,
+    trackExtra: (n, k) => `${n} other match${n > 1 ? 'es' : ''} tracked without published odds, hence left out of the comparison (model: ${k} correct).`,
+    byDay: 'By matchday', day: 'Day', matchesH: 'Matches', allMatches: 'All matches', noOddsShort: 'no odds',
+    cumSame: 'The two curves overlap: the model and the bookmakers picked the same favourite in every one of these matches.',
+    cumNote: (n, tot) => `Both curves cover the same ${n} matches (out of ${tot}), those whose odds were published, and move together match by match.`, cum: 'Cumulative accuracy', us: 'Our model', books: 'Bookmakers',
     form: 'Recent form', last5: 'Last 5 matches', elo: 'Elo rating', eloNote: 'Strength rating of each team over its latest league matches.',
     scores: 'Most likely scores', scoresNote: 'From the goals model (Dixon-Coles), which may differ slightly from the final probabilities.',
     disT: 'Disagreement with the bookmakers', disShort: 'Disagrees with the market',
@@ -728,25 +756,53 @@ function lineChart(series, opts) {       // series : [{values, grad|color, label
   const n = Math.max(...series.map(s => s.values.length));
   const x = i => L + (n <= 1 ? 0 : i / (n - 1) * (W - L - R)), y = v => T + (hi - v) / (hi - lo) * (H - T - B);
   const grid = opts.ticks.map(v => `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="currentColor" stroke-opacity=".1"/><text x="${L - 8}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="currentColor" fill-opacity=".45">${opts.fmt(v)}</text>`).join('');
-  const lines = series.map(s => `<polyline fill="none" stroke="${s.grad ? 'url(#lg)' : 'currentColor'}" ${s.grad ? '' : 'stroke-opacity=".4"'} stroke-width="${s.grad ? 3 : 2.2}" stroke-linecap="round" stroke-linejoin="round"
-      points="${s.values.map((v, i) => `${x(i).toFixed(1)},${y(Math.min(hi, Math.max(lo, v))).toFixed(1)}`).join(' ')}"/>`
-    + (s.values.length ? `<circle cx="${x(s.values.length - 1).toFixed(1)}" cy="${y(Math.min(hi, Math.max(lo, s.values.at(-1)))).toFixed(1)}" r="4.5" fill="${s.grad ? '#d86bff' : 'currentColor'}" ${s.grad ? '' : 'fill-opacity=".55"'}/>` : '')).join('');
-  return `<svg viewBox="0 0 ${W} ${H}" role="img">${grid}${lines}</svg><div class="legendx">${series.map(s => `<span><i style="background:${s.grad ? 'var(--grad)' : 'var(--neutral)'}"></i>${esc(s.label)}</span>`).join('')}</div>`;
+  const lines = series.map(s => { const pts = s.values.map((v, i) => [i, v]).filter(([, v]) => v != null), last = pts.at(-1);
+    return `<polyline fill="none" stroke="${s.grad ? 'url(#lg)' : 'currentColor'}" ${s.grad ? '' : 'stroke-opacity=".75" stroke-dasharray="5 6"'} stroke-width="${s.grad ? 3 : 2.2}" stroke-linecap="round" stroke-linejoin="round"
+      points="${pts.map(([i, v]) => `${x(i).toFixed(1)},${y(Math.min(hi, Math.max(lo, v))).toFixed(1)}`).join(' ')}"/>`
+    + (last ? `<circle cx="${x(last[0]).toFixed(1)}" cy="${y(Math.min(hi, Math.max(lo, last[1]))).toFixed(1)}" r="4.5" fill="${s.grad ? '#d86bff' : 'currentColor'}" ${s.grad ? '' : 'fill-opacity=".55"'}/>` : ''); }).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" role="img">${grid}${lines}</svg><div class="legendx">${series.map(s => `<span><i style="${s.grad ? 'background:var(--grad)' : 'background:repeating-linear-gradient(90deg,var(--ink2) 0 4px,transparent 4px 7px)'}"></i>${esc(s.label)}</span>`).join('')}</div>`;
 }
 function renderSuivi() {
   const el = $('#tab-suivi'), tr = DATA.tracking;
   if (!tr.n) { el.innerHTML = `<div class="state">${RING}<h2>${esc(t('soon'))}</h2><p>${esc(t('soonSub'))}</p></div>`; return; }
-  const OUT = [t('home'), t('draw'), t('away')], rows = [...tr.rows].reverse();
-  let h = 0; const acc = rows.map((r, i) => (h += r.hit ? 1 : 0) / (i + 1));
-  let bh = 0, bn = 0; const bacc = rows.filter(r => r.book_hit != null).map(r => (bh += r.book_hit ? 1 : 0) / ++bn);
-  const series = [{values: acc, grad: true, label: t('us')}].concat(bacc.length > 1 ? [{values: bacc, label: t('books')}] : []);
-  el.innerHTML = `<div class="hero"><span class="eyebrow g">${esc(t('suivi'))}</span><p class="stat g" data-to="${num(tr.accuracy)}">${num(tr.accuracy)}<small>%</small></p>
-      <p>${esc(t('hits', tr.hits, tr.n))}${tr.book_n ? esc(t('bookAcc', num(tr.book_accuracy), tr.book_n)) : ''}</p></div>
-    ${tr.n < 100 ? `<p class="fine" style="margin:-14px 0 28px">${esc(t('small'))}</p>` : ''}
-    ${rows.length >= 5 ? `<h2 style="margin-top:8px">${esc(t('cum'))}</h2><div class="chart">${lineChart(series, {lo: .2, hi: .8, ticks: [.3, .4, .5, .6, .7], fmt: v => num(v) + ' %'})}</div>` : ''}
-    <ol class="list">${tr.rows.map(r => { const f = r.p.indexOf(Math.max(...r.p));
-      return `<li class="pick"><span class="rk"><i class="mark ${r.hit ? 'y' : 'n'}"></i></span><div><div class="t">${esc(nm(r.home))} ${esc(r.score)} ${esc(nm(r.away))}</div><div class="s">${esc(r.league)} · ${esc(r.date)}</div></div>
-        <div class="v"><div class="s">${esc(OUT[f])}</div><div class="s">${num(r.p[f])} %</div></div></li>`; }).join('')}</ol>`;
+  const rows = [...tr.rows].sort((a, b) => (a.iso || '').localeCompare(b.iso || ''));       // ordre chronologique
+  // Une seule base de comparaison : les matchs dont les cotes étaient publiées. Tous les chiffres du haut,
+  // la courbe et le tableau par journée portent sur ces mêmes matchs.
+  const cmp = rows.filter(r => r.book_hit != null);
+  const base = cmp.length ? cmp : rows, withBook = cmp.length > 0;
+  const mHits = base.filter(r => r.hit).length, bHits = withBook ? base.filter(r => r.book_hit).length : 0;
+  const pct = (k, n) => n ? Math.round(k / n * 100) : 0;
+  const tile = (label, k, n, grad) => `<div class="kp"><span class="kl">${esc(label)}</span><b class="${grad ? 'g' : ''}">${pct(k, n)}<small>%</small></b><span class="kn">${esc(t('ofN', k, n))}</span></div>`;
+  const extra = rows.length - base.length;
+  // courbe
+  let h = 0, bh = 0;
+  const acc = base.map((r, i) => (h += r.hit ? 1 : 0) / (i + 1));
+  const bacc = withBook ? base.map((r, i) => (bh += r.book_hit ? 1 : 0) / (i + 1)) : [];
+  const series = [{values: acc, grad: true, label: t('us')}].concat(withBook ? [{values: bacc, label: t('books')}] : []);
+  const same = withBook && acc.every((v, i) => Math.abs(v - bacc[i]) < 1e-9);
+  // tableau par journée
+  const days = [...new Set(base.map(r => r.iso))].reverse();
+  const dayRows = days.map(d => { const g = base.filter(r => r.iso === d);
+    return `<tr><td>${esc(cap(fmt(d + 'T12:00:00Z', {weekday: 'long', day: 'numeric', month: 'long'})))}</td><td class="r">${g.length}</td>
+      <td class="r"><b>${g.filter(r => r.hit).length}</b></td>${withBook ? `<td class="r">${g.filter(r => r.book_hit).length}</td>` : ''}</tr>`; }).join('');
+  // liste des matchs
+  const OUT = [t('home'), t('draw'), t('away')];
+  const pickOf = (pr, r) => { const k = pr.indexOf(Math.max(...pr)); return `${esc(k === 1 ? t('draw') : nm(k === 0 ? r.home : r.away))} <span class="pp">${num(pr[k])} %</span>`; };
+  const mark = ok => `<i class="mk ${ok ? 'y' : 'n'}">${ok ? '✓' : '✕'}</i>`;
+  const list = [...rows].reverse().map(r => `<li class="sv">
+      <div class="svm"><div class="t">${esc(nm(r.home))} <span class="sc2">${esc(r.score)}</span> ${esc(nm(r.away))}</div><div class="s">${esc(r.league)} · ${esc(r.date)}</div></div>
+      <div class="svp"><span class="who">${esc(t('us'))}</span>${mark(r.hit)}<span>${pickOf(r.p, r)}</span></div>
+      <div class="svp">${r.book ? `<span class="who">${esc(t('books'))}</span>${mark(r.book_hit)}<span>${pickOf(r.book, r)}</span>` : `<span class="who">${esc(t('books'))}</span><span class="na">${esc(t('noOddsShort'))}</span>`}</div></li>`).join('');
+  el.innerHTML = `<div class="hero"><span class="eyebrow g">${esc(t('suivi'))}</span><h1>${esc(t('trackTitle'))}</h1>
+      <p>${esc(withBook ? t('trackSub', base.length) : t('trackSubNoOdds', base.length))}</p></div>
+    <div class="kps">${tile(t('us'), mHits, base.length, true)}${withBook ? tile(t('books'), bHits, base.length, false) : ''}</div>
+    ${extra > 0 ? `<p class="fine" style="margin:14px 0 0">${esc(t('trackExtra', extra, rows.filter(r => r.book_hit == null).filter(r => r.hit).length))}</p>` : ''}
+    ${base.length < 100 ? `<p class="fine" style="margin:6px 0 0">${esc(t('small'))}</p>` : ''}
+    ${base.length >= 5 ? `<h2>${esc(t('cum'))}</h2><div class="chart" style="margin-bottom:10px">${lineChart(series, {lo: 0, hi: 1, ticks: [.2, .4, .6, .8], fmt: v => num(v) + ' %'})}</div>
+      ${same ? `<p class="fine" style="margin:0">${esc(t('cumSame'))}</p>` : ''}` : ''}
+    <h2>${esc(t('byDay'))}</h2>
+    <div class="box"><table class="dt"><thead><tr><th>${esc(t('day'))}</th><th class="r">${esc(t('matchesH'))}</th><th class="r">${esc(t('us'))}</th>${withBook ? `<th class="r">${esc(t('books'))}</th>` : ''}</tr></thead><tbody>${dayRows}</tbody></table></div>
+    <h2>${esc(t('allMatches'))}</h2><div class="svh"><span></span><span>${esc(t('us'))}</span><span>${withBook ? esc(t('books')) : ''}</span></div><ol class="list svl">${list}</ol>`;
 }
 
 // ---- fiche de match -----------------------------------------------------------------------------

@@ -1,10 +1,12 @@
-# Met à jour le site hébergé : recalcule les prédictions et publie le dossier site/ sur GitHub Pages.
-# Déclenchement : sept fois par jour, à chaque envoi sur la branche principale, ou à la main (onglet Actions).
+# Met à jour le site (usage personnel, même contenu que l'application locale) : recalcule les prédictions
+# avec les données joueurs, les compositions et l'actualité, puis publie le dossier site/ sur GitHub Pages.
+# Déclenchement : toutes les heures de 10 h à minuit (heure de Paris) et toutes les trois heures la nuit,
+# à chaque envoi sur la branche principale, ou à la main (onglet Actions, « Run workflow »).
 name: Mettre à jour le site
 
 on:
   schedule:
-    - cron: "15 5,11,15,17,19,21,23 * * *"   # heures UTC : toutes les deux heures l'après-midi et le soir, pour suivre les résultats
+    - cron: "15 0,3,6,9-23 * * *"      # heures UTC
   push:
     branches: [main]
     paths-ignore: ["results/predictions_log_public.csv"]
@@ -22,6 +24,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 40
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
@@ -33,10 +36,26 @@ jobs:
           cache: pip
           cache-dependency-path: requirements-site.txt
       - run: pip install -r requirements-site.txt
-      # Les fichiers de résultats des saisons passées ne changent plus : on les garde d'une exécution à l'autre
+      # Données joueurs (compositions, valeurs marchandes 2012-2026) : jeu figé, téléchargé une seule fois puis gardé en cache
+      - uses: actions/cache@v4
+        id: tm
+        with:
+          path: data/external/transfermarkt
+          key: transfermarkt-2026-07
+      - name: Télécharger les données joueurs
+        if: steps.tm.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p data/external/transfermarkt
+          for t in games players player_valuations appearances game_lineups; do
+            curl -sfL -o "data/external/transfermarkt/$t.csv.gz" "https://pub-e682421888d945d684bcae8890b0ec20.r2.dev/data/$t.csv.gz"
+          done
+      # Résultats, calendriers, tableaux de scores et compositions déjà téléchargés, stock d'articles d'actualité :
+      # gardés d'une exécution à l'autre (seuls les éléments nouveaux sont téléchargés)
       - uses: actions/cache@v4
         with:
-          path: data/raw
+          path: |
+            data/raw
+            data/processed/news_items.pkl
           key: raw-${{ github.run_id }}
           restore-keys: raw-
       - name: Calculer les prédictions et construire le site
@@ -49,6 +68,7 @@ jobs:
           git config user.email "site-bot@users.noreply.github.com"
           git add results/predictions_log_public.csv
           git diff --cached --quiet || git commit -m "Journal de suivi du site"
+          git pull --rebase -q || true
           git push
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

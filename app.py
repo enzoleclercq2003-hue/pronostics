@@ -111,9 +111,9 @@ def build_payload(df, info, log_path=None) -> dict:
             book_hit = np.where(ok, np.nan_to_num(b).argmax(axis=1) == y, False)
             tracking["rows"] = [{"date": f"{d:%d/%m}", "iso": f"{d:%Y-%m-%d}", "league": cfg.LEAGUES[l], "home": h, "away": a,
                                  "score": f"{int(hg)}-{int(ag)}", "p": [float(x) for x in pr], "result": int(res), "hit": bool(ok_),
-                                 "book_hit": bool(bh) if has_b else None}
-                                for d, l, h, a, hg, ag, pr, res, ok_, bh, has_b in zip(j.Date_res, j.league, j.HomeTeam, j.AwayTeam,
-                                                                                      j.FTHG, j.FTAG, p, y, hit, book_hit, ok)][:400]
+                                 "book_hit": bool(bh) if has_b else None, "book": [float(x) for x in bp] if has_b else None}
+                                for d, l, h, a, hg, ag, pr, res, ok_, bh, has_b, bp in zip(j.Date_res, j.league, j.HomeTeam, j.AwayTeam,
+                                                                                          j.FTHG, j.FTAG, p, y, hit, book_hit, ok, b)][:400]
 
     backtest = None
     path = cfg.RESULTS_DIR / "value_backtest.csv"

@@ -47,7 +47,7 @@ def build_page(use_players: bool) -> str:
         assert old in html, f"repère introuvable dans la page : {old}"
         html = html.replace(old, new)
     flag = f"<script>window.SITE = {json.dumps({'players': use_players})};</script>\n"
-    meta = ('<meta name="description" content="Probabilités des matchs de football des cinq grands championnats, '
+    meta = ('<meta name="robots" content="noindex, nofollow">\n<meta name="description" content="Probabilités des matchs de football des cinq grands championnats, '
             'calculées par un modèle statistique documenté. Estimation, pas un conseil de pari.">\n')
     assert "<style>" in html
     return html.replace("<style>", meta + flag + "<style>", 1)
@@ -73,7 +73,7 @@ def main():
     shutil.copy(ROOT / "app" / "icon.ico", SITE / "favicon.ico")
     shutil.copy(ROOT / "app" / "fonts" / "InterVariable.woff2", SITE / "fonts" / "InterVariable.woff2")
     (SITE / ".nojekyll").write_text("", encoding="utf-8")          # GitHub Pages : servir les fichiers tels quels
-    (SITE / "robots.txt").write_text("User-agent: *\nAllow: /\n", encoding="utf-8")
+    (SITE / "robots.txt").write_text("User-agent: *\nDisallow: /\n", encoding="utf-8")       # usage personnel : pas d'indexation
     size = sum(f.stat().st_size for f in SITE.rglob("*") if f.is_file()) / 1024
     print(f"Site construit dans {SITE} : {len(payload['matches'])} matchs, {size:.0f} Ko, "
           f"données joueurs {'incluses' if use_players else 'exclues'}, sans écussons.")

@@ -36,7 +36,7 @@ ALL_SEASONS = list(range(FIRST_SEASON, CURRENT_SEASON + 1))
 # False : le site public n'utilise aucune donnée joueur (compositions ESPN, valeurs Transfermarkt),
 # dont les conditions n'autorisent pas un usage commercial. À passer à True seulement avec des
 # données sous licence. L'application locale, elle, n'est pas concernée par ce réglage.
-PUBLIC_USE_PLAYER_DATA = False
+PUBLIC_USE_PLAYER_DATA = True
 
 # Application locale : absences annoncées dans l'actualité (flux RSS publics, src/news.py) prises en
 # compte à chaque calcul via une composition probable. Mettre à False pour revenir au modèle sans actualité.

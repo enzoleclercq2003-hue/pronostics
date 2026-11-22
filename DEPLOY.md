@@ -4,18 +4,22 @@ La version hébergée est un site **statique** : un dossier `site/` (page, polic
 fabriqué par `python build_site.py`. Il n'y a pas de serveur à maintenir. Les prédictions sont
 recalculées par une tâche planifiée gratuite (GitHub Actions) qui republie le dossier.
 
-## Ce que contient la version publique
+## Ce que contient le site
 
-| | Application locale | Site public |
+Depuis le 22/11/2026, le site est à **usage personnel** et reprend tout le contenu de l'application locale
+(`PUBLIC_USE_PLAYER_DATA = True` et `USE_NEWS = True` dans `config.py`). Il n'est pas référencé par les
+moteurs de recherche (`robots.txt` et balise `noindex`), mais reste accessible à quiconque a l'adresse.
+
+| | Application locale | Site |
 |---|---|---|
-| Écussons des clubs | oui | **non** (pastille avec l'initiale) |
-| Compositions ESPN, valeurs Transfermarkt | oui | **non** (`PUBLIC_USE_PLAYER_DATA = False` dans `config.py`) |
-| Modèle | base + valeur des effectifs | modèle de base (52,5 % au test final) |
-| Fiche de match | forme, Elo, scores, absents | forme, Elo, scores |
-| Mise à jour | à l'ouverture / bouton | automatique, trois fois par jour |
+| Écussons des clubs | oui | non (pastilles aux couleurs des clubs) |
+| Compositions, valeurs marchandes, absences de l'actualité | oui | oui |
+| Modèle | base + enjeu + effectifs + composition officielle | identique |
+| Mise à jour | à l'ouverture ou bouton « Actualiser » | toutes les heures de 10 h à minuit, toutes les trois heures la nuit |
 | Suivi | `results/predictions_log.csv` | `results/predictions_log_public.csv` |
 
-L'onglet « Modèle » du site ne décrit que ce qui est réellement utilisé (la section sur les effectifs est retirée).
+Avant toute ouverture au public ou toute monétisation, repasser `PUBLIC_USE_PLAYER_DATA` à `False` :
+les compositions (ESPN) et les valeurs marchandes (Transfermarkt) ne sont pas utilisables commercialement.
 
 ## Essayer en local
 
