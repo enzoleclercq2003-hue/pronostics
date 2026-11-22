@@ -68,7 +68,15 @@ def main():
     (SITE / "fonts").mkdir(parents=True)
     (SITE / "index.html").write_text(build_page(use_players), encoding="utf-8")
     (SITE / "data.json").write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
-    shutil.copy(ROOT / "app" / "team_colors.json", SITE / "colors.json")     # couleurs des pastilles d'équipes
+    shutil.copy(ROOT / "app" / "team_colors.json", SITE / "colors.json")     # couleurs des pastilles (repli sans écusson)
+    try:                                                   # écussons des clubs (site à usage personnel)
+        from src.assets import LOGO_DIR, ensure_team_logos
+        from src.data import load_processed
+        ensure_team_logos(load_processed())
+        if (LOGO_DIR / "index.json").exists():
+            shutil.copytree(LOGO_DIR, SITE / "logos")
+    except Exception as exc:                               # sans écussons, les pastilles de couleur prennent le relais
+        print(f"  écussons indisponibles ({type(exc).__name__}) : pastilles de couleur utilisées")
     shutil.copy(ROOT / "app" / "icon.png", SITE / "icon.png")
     shutil.copy(ROOT / "app" / "icon.ico", SITE / "favicon.ico")
     shutil.copy(ROOT / "app" / "fonts" / "InterVariable.woff2", SITE / "fonts" / "InterVariable.woff2")
@@ -76,7 +84,7 @@ def main():
     (SITE / "robots.txt").write_text("User-agent: *\nDisallow: /\n", encoding="utf-8")       # usage personnel : pas d'indexation
     size = sum(f.stat().st_size for f in SITE.rglob("*") if f.is_file()) / 1024
     print(f"Site construit dans {SITE} : {len(payload['matches'])} matchs, {size:.0f} Ko, "
-          f"données joueurs {'incluses' if use_players else 'exclues'}, sans écussons.")
+          f"données joueurs {"incluses" if use_players else "exclues"}, écussons {"inclus" if (SITE / "logos").exists() else "absents"}.")
 
 
 if __name__ == "__main__":

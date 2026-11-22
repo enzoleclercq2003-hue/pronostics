@@ -59,6 +59,7 @@ jobs:
           path: |
             data/raw
             data/processed/news_items.pkl
+            app/logos
           key: raw-${{ github.run_id }}
           restore-keys: raw-
       - name: Calculer les prédictions et construire le site

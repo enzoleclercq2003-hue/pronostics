@@ -603,7 +603,7 @@ function teamBadge(team) {
 }
 function crest(team) {
   const l = LOGOS[team], file = l && (root.dataset.theme === 'light' ? l.light : l.dark);
-  return file ? `<img class="crest" src="/logos/${esc(file)}" alt="" decoding="async">` : teamBadge(team);
+  return file ? `<img class="crest" src="${SITE ? '' : '/'}logos/${esc(file)}" alt="" decoding="async">` : teamBadge(team);
 }
 const RING = `<svg viewBox="0 0 100 100" aria-hidden="true"><g fill="none" stroke-width="11.5" stroke-linecap="round">
   <circle cx="50" cy="50" r="30" stroke="url(#lg)" stroke-dasharray="89 188.5" transform="rotate(-90 50 50)"/>
@@ -678,11 +678,13 @@ function card(m, i) {
     ${sc || right ? `<div class="extra"><span>${esc(sc)}</span>${right}</div>` : ''}</article>`;
 }
 function feature(m) {
+  const f = fav(m), clear = m.p[f] >= 0.42;                 // même règle que les cartes : pas de favori net, pas de mise en avant
+  const big = k => `<div class="big ${k === f && clear ? 'g' : ''}">${num(m.p[k])}<small style="font-size:.5em;${k === f && clear ? '' : 'color:var(--ink3)'}"> %</small></div>`;
   return `<div class="feature" data-id="${esc(mid(m))}" tabindex="0" role="button">
-    <div class="side">${crest(m.home)}<div class="tn">${esc(nm(m.home))}</div><div class="big g">${num(m.p[0])}<small style="font-size:.5em"> %</small></div></div>
+    <div class="side">${crest(m.home)}<div class="tn">${esc(nm(m.home))}</div>${big(0)}</div>
     <div class="mid"><div class="tag g">${esc(t('featured'))}</div><div class="cd">${esc(m.league_name)} · ${esc(when(m))}</div><div class="cd" data-cd="${esc(mid(m))}">${esc(countdown(m))}</div>
-      <div class="drawp"><b>${num(m.p[1])} %</b>${esc(t('draw'))}</div></div>
-    <div class="side">${crest(m.away)}<div class="tn">${esc(nm(m.away))}</div><div class="big">${num(m.p[2])}<small style="font-size:.5em;color:var(--ink3)"> %</small></div></div></div>`;
+      <div class="drawp"><b class="${f === 1 && clear ? 'g' : ''}">${num(m.p[1])} %</b>${esc(t('draw'))}</div></div>
+    <div class="side">${crest(m.away)}<div class="tn">${esc(nm(m.away))}</div>${big(2)}</div></div>`;
 }
 function resultCard(r, i) {
   const [hg, ag] = r.score.split('-').map(Number), f = r.p.indexOf(Math.max(...r.p));
@@ -954,7 +956,7 @@ function stateBlock(title, text, btn) { return `<div class="state">${RING}<h2>${
 // régénéré automatiquement, sans serveur local, sans bouton Actualiser et sans écussons de clubs.
 const SITE = window.SITE || null;
 async function loadData() {
-  if (!SITE) try { LOGOS = await (await fetch('/logos/index.json')).json(); } catch (e) {}
+  if (!Object.keys(LOGOS).length) try { LOGOS = await (await fetch(SITE ? 'logos/index.json' : '/logos/index.json')).json(); } catch (e) {}
   if (SITE && !Object.keys(COLORS).length) try { COLORS = await (await fetch('colors.json')).json(); } catch (e) {}
   let d;
   try { d = await (await fetch(SITE ? 'data.json?' + Date.now() : '/api/data')).json(); OFFLINE = false; }
