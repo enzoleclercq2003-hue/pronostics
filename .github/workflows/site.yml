@@ -1,12 +1,15 @@
 # Met à jour le site (usage personnel, même contenu que l'application locale) : recalcule les prédictions
 # avec les données joueurs, les compositions et l'actualité, puis publie le dossier site/ sur GitHub Pages.
-# Déclenchement : toutes les heures de 10 h à minuit (heure de Paris) et toutes les trois heures la nuit,
+# Déclenchement : toutes les 30 minutes de 10 h à minuit (heure de Paris), toutes les trois heures la nuit,
 # à chaque envoi sur la branche principale, ou à la main (onglet Actions, « Run workflow »).
+# Le planificateur de GitHub retarde ou saute parfois des exécutions quand ses serveurs sont chargés :
+# des créneaux rapprochés compensent ces pertes.
 name: Mettre à jour le site
 
 on:
   schedule:
-    - cron: "15 0,3,6,9-23 * * *"      # heures UTC
+    - cron: "7,37 9-23 * * *"          # heures UTC (minutes décalées : les heures pleines sont les plus chargées)
+    - cron: "7 0,3,6 * * *"
   push:
     branches: [main]
     paths-ignore: ["results/predictions_log_public.csv"]
@@ -19,7 +22,7 @@ permissions:
 
 concurrency:
   group: site
-  cancel-in-progress: false
+  cancel-in-progress: false        # une exécution en cours n'est jamais interrompue ; la suivante attend
 
 jobs:
   build:
@@ -27,7 +30,7 @@ jobs:
     timeout-minutes: 40
     environment:
       name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+      url: ${{ steps.deploy.outputs.page_url || steps.deploy_retry.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -75,4 +78,12 @@ jobs:
         with:
           path: site
       - id: deploy
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+      # Publication refusée par une panne passagère de GitHub Pages : nouvelle tentative une minute plus tard
+      - name: Attendre avant une nouvelle tentative
+        if: steps.deploy.outcome == 'failure'
+        run: sleep 60
+      - id: deploy_retry
+        if: steps.deploy.outcome == 'failure'
         uses: actions/deploy-pages@v4
