@@ -316,6 +316,54 @@ LightGBM ne le rapproche même pas de la régression logistique sans formations 
 Les formations sont en outre des étiquettes approximatives, et celle du match à venir n'est qu'une
 supposition. Variables non intégrées.
 
+### Seuil de pronostic (retenu)
+
+Désigner l'issue la plus probable pour chaque match revient à « pronostiquer » un favori à 40 ou 50 %, qui
+ne gagne qu'une fois sur deux au mieux. L'application ne désigne plus un vainqueur que si son issue atteint
+un seuil ; en dessous, le match est affiché « ouvert ». Règle de choix fixée à l'avance et appliquée aux
+saisons de décision (walk-forward 2020-2024, probabilités calibrées comme en production) : le plus petit
+seuil, par pas de 5 points, pour lequel les pronostics émis sont justes au moins deux fois sur trois.
+Résultat : **60 %** (55 % donne 66,1 %, juste sous la barre). Script `scripts/18_threshold_upsets.py`,
+résultats `threshold_analysis.csv`.
+
+| Seuil | Walk-forward : part pronostiquée | précision | bookmakers (même règle) | Test final 2025/26 : part | précision | bookmakers |
+|---|---|---|---|---|---|---|
+| aucun | 100 % | 52,8 % | 53,7 % | 100 % | 52,5 % | 53,3 % |
+| 50 % | 50,7 % | 62,5 % | 64,1 % | 48,7 % | 62,6 % | 61,9 % |
+| 55 % | 37,5 % | 66,1 % | 67,2 % | 35,6 % | 66,5 % | 66,5 % |
+| **60 %** | **26,4 %** | **70,2 %** | 70,5 % | **25,1 %** | **70,8 %** | 72,2 % |
+| 65 % | 17,7 % | 73,5 % | 74,6 % | 14,8 % | 75,3 % | 75,9 % |
+
+Les bookmakers sont soumis à la même règle (leur probabilité la plus haute doit atteindre 60 %) ; ils
+émettent un peu plus de pronostics (26,3 % des matchs au test final). Aucun nul n'atteint jamais 60 % :
+le prédicteur désigne un vainqueur ou déclare le match ouvert. La précision au seuil n'est pas une
+amélioration du modèle (ses probabilités sont inchangées) : c'est le choix de ne se prononcer que sur les
+matchs les plus nets, environ un sur quatre.
+
+### Contre-performances du favori (retenu sous forme d'alerte)
+
+Question : parmi les matchs où le modèle a un favori, peut-on prévoir mieux que « 1 − probabilité du
+favori » ceux où il ne gagne pas ? Régression logistique standardisée, fenêtre glissante (chaque saison
+2020-2025 prédite par un modèle appris sur les saisons antérieures depuis 2017), comparée à une référence
+emboîtée : la même régression avec la seule probabilité du favori (recalibrée de la même façon). Écart de
+log loss par rapport à la référence, intervalle à 95 % par rééchantillonnage apparié (`upset_experiment.csv`) :
+
+| Variables | Walk-forward, tous matchs | Walk-forward, pronostics ≥ 60 % | Test final, tous | Test final, pronostics |
+|---|---|---|---|---|
+| Contexte : fatigue (repos, matchs en 14 jours), enjeu, forme récente contre saison, match attendu fermé, promu, confrontations | +0,0012 [−0,0004 ; +0,0029] | +0,0026 | +0,0017 | +0,0024 |
+| Contexte + écart avec le marché | −0,0087 [−0,0116 ; −0,0057] | −0,0057 | −0,0080 | −0,0064 |
+| Favori + marché seulement (retenu) | **−0,0100** [−0,0124 ; −0,0071] | **−0,0080** [−0,0126 ; −0,0032] | **−0,0079** [−0,0135 ; −0,0019] | −0,0089 [−0,0202 ; +0,0019] |
+
+Le contexte n'apporte rien : le modèle principal en tient déjà compte (repos, forme, enjeu font partie
+de ses variables). Le seul signal est le marché : quand les bookmakers donnent au favori moins que le
+modèle, il cale nettement plus souvent (coefficient de l'écart +0,20 en unités standardisées). Les 20 %
+de pronostics jugés les plus fragiles ont échoué 44 % du temps en walk-forward et 45 % au test final,
+contre 29 à 30 % pour l'ensemble des pronostics. Mise en production (`src/decision.py`,
+`models/upset_model.joblib`) : risque estimé pour chaque pronostic dont les cotes sont publiées, alerte
+« Risque de contre-performance » au-delà de 37 %, seuil qui isole les 20 % de pronostics les plus fragiles
+sur l'historique. Sur le test final, l'écart limité aux seuls pronostics n'est pas significatif à 95 % :
+l'alerte signale une fragilité, elle ne retourne pas le pronostic.
+
 ## 9. Limites
 
 - Le test final ne compte que 1 752 matchs : les intervalles de confiance sont larges (± 2,3 points de précision).

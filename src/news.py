@@ -35,6 +35,7 @@ FEEDS = {          # média : adresse du flux public
     "La Gazzetta dello Sport": "https://www.gazzetta.it/rss/calcio.xml",
     "Corriere dello Sport": "https://www.corrieredellosport.it/rss/calcio/serie-a",
     "Sportschau": "https://www.sportschau.de/fussball/bundesliga/index~rss2.xml",
+    "Foot Mercato": "https://www.footmercato.net/flux-rss",
 }
 STORE = cfg.PROCESSED_DIR / "news_items.pkl"
 KEEP_DAYS = 45
@@ -43,11 +44,11 @@ KEEP_DAYS = 45
 RETURN = r"\b(back in training|returns? to training|back from injury|returns?|is back|fit again|available again|reprend l.?entrainement|de retour|fait son retour|retour (?:a|de|en|dans)|rejou\w*|reprend\w*|vuelve|volvera|regresa|recupera(?:do)?|alta medica|rientr\w*|tornat\w* (?:in gruppo|disponibil\w*)|torna (?:in gruppo|disponibile)|recuperat\w*|wieder fit|zuruck im training|comeback|kehrt zuruck)\b"
 DOUBT = r"\b(doubt(?:ful)?|fitness (?:test|concern)|race against time|incertain|incertitude|pas certain|en duda|duda|in dubbio|in forse|fraglich|angeschlagen|wackelt)\b"
 OUT = (r"\b(injur(?:y|ed|ies)|ruled out|sidelined|out for|will miss|to miss|misses|set to miss|suspended|suspension|ban(?:ned)?|"
-       r"hamstring|knee|ankle|acl|surgery|operation|blesse|blessure|forfait|absent|indisponible|manquera|opere|suspendu|"
-       r"lesion(?:ado)?|baja|operado|sancionado|fractura|rotura|infortun(?:io|ato)|squalific(?:ato|a)|stop di|"
+       r"hamstring|knee|ankle|acl|surgery|operation|carried off|blesse|blessure|forfait|absent|indisponible|manquer\w*|opere|suspendu|rupture|"
+       r"lesion(?:ado)?|baja|operado|sancionado|fractura|rotura|se pierde|se perdera|infortun(?:io|ato)|squalific(?:ato|a)|stop di|"
        r"verletz(?:t|ung)|fallt (?:aus|lange)|ausfall|gesperrt|sperre|operiert|kreuzband|muskelfaser)\b")
 LONG = r"\b(surgery|operation|acl|cruciate|months?|season|opere|opere|operation|plusieurs (?:semaines|mois)|fin de saison|fractur\w*|rotura|meses|temporada|mesi|stagione|kreuzband|monate|saison-aus|saisonende)\b"
-STRONG = r"\b(ruled out|will miss|surgery|operation|opere|forfait|fractur\w*|rotura|baja para|operado|out for|sidelined|kreuzband|fallt (?:aus|lange)|operiert|squalificato|suspended for|ban of)\b"
+STRONG = r"\b(ruled out|will miss|surgery|operation|opere|forfait|rupture|fractur\w*|rotura|se pierde|baja para|operado|out for|sidelined|kreuzband|fallt (?:aus|lange)|operiert|squalificato|suspended for|ban of)\b"
 
 # Noms courants des clubs dans la presse (en plus du nom de la base et du nom ESPN)
 ALIASES = {
@@ -131,6 +132,39 @@ def _find(words: list[str], name: list[str]) -> list[tuple[int, int]]:
     return [(i, i + n) for i in range(len(words) - n + 1) if words[i:i + n] == name]
 
 
+# mots qui ouvrent une autre proposition : une expression située au-delà ne se rapporte plus au même joueur
+# (« Doué carried off for PSG while Kane vows to return »)
+CLAUSE_BREAK = {"while", "but", "whereas", "although", "alors", "tandis", "mais", "mientras", "pero", "aunque", "mentre", "ma", "pero",
+                "wahrend", "aber", "doch"}
+LIST_WORDS = {"and", "et", "y", "e", "und", "en"}     # « Mendes et Doué absents » : la liste partage l'expression
+
+
+def _closest(spans: list[tuple[int, int]], i: int, words: list[str]) -> set[tuple[int, int]]:
+    """Noms auxquels se rapporte une expression placée au mot i : le nom le plus proche, plus les noms
+    coordonnés avec lui (« Hakimi, Mendes et Doué forfaits »). Évite d'attribuer à un joueur la blessure
+    d'un coéquipier cité dans la même phrase (« le message de soutien de Kvaratskhelia à Doué après sa blessure »)."""
+    if not spans:
+        return set()
+    dist = lambda sp: i - sp[1] if i >= sp[1] else max(sp[0] - i, 0)
+    best = min(dist(sp) for sp in spans)
+    chosen = {sp for sp in spans if dist(sp) == best}
+    srt = sorted(spans)
+    grew = True
+    while grew:                                            # propagation le long d'une énumération
+        grew = False
+        for x, y in zip(srt, srt[1:]):
+            if x[1] <= y[0] and (y[0] - x[1] == 0 or (y[0] - x[1] == 1 and words[x[1]] in LIST_WORDS)):
+                if (x in chosen) != (y in chosen):
+                    chosen |= {x, y}; grew = True
+    return chosen
+
+
+def _linked(words: list[str], a: int, b: int, i: int) -> bool:
+    """Aucun mot de rupture de proposition entre le nom (mots a..b) et l'expression au mot i."""
+    gap = words[b:i] if i >= b else words[i + 1:a]
+    return not CLAUSE_BREAK.intersection(gap)
+
+
 def extract_absences(items: pd.DataFrame, roster: pd.DataFrame, team_names: dict, now: pd.Timestamp | None = None) -> pd.DataFrame:
     """Absences par joueur, à partir du titre et de la première phrase de chaque article.
 
@@ -158,10 +192,16 @@ def extract_absences(items: pd.DataFrame, roster: pd.DataFrame, team_names: dict
             continue
         teams_in = {t for t, al in aliases.items() if any(_find(words, a) for a in al if a)}
         found = []                                              # (joueur, début, fin)
+        echo = set()      # rappels par le seul nom d'un joueur déjà cité en entier : ils « captent » les expressions
+                          # voisines (pour ne pas les attribuer à un coéquipier) sans produire d'absence à eux seuls
         for p in players:
             spans = _find(words, p.toks)
             if not spans and len(p.toks) > 1 and len(p.last) >= 5 and p.team in teams_in and by_last.get(p.last, 0) == 1:
                 spans = _find(words, [p.last])
+            elif spans and len(p.toks) > 1 and len(p.last) >= 3:
+                bare = _find(words, [p.last])                  # « le soutien de Kvaratskhelia à Doué après sa blessure »
+                echo |= set(bare)
+                spans += bare
             found += [(p, a, b) for a, b in spans]
         # un nom contenu dans un nom plus long cité au même endroit désigne l'autre joueur
         found = [(p, a, b) for p, a, b in found if not any(a2 <= a and b <= b2 and (b2 - a2) > (b - a) for _, a2, b2 in found)]
@@ -172,17 +212,26 @@ def extract_absences(items: pd.DataFrame, roster: pd.DataFrame, team_names: dict
         if not found:
             continue
         neg, back, doubt, out, strong = (_positions(words, rx) for rx in (NEGATION, RETURN, DOUBT, OUT, STRONG))
+        spans = list(names)
         is_long = bool(re.search(LONG, it.text))
         for (a, b), cands in names.items():
+            if (a, b) in echo:
+                continue
             if len(cands) > 1:
                 cands = [p for p in cands if p.team in teams_in]
                 if len(cands) != 1:
                     continue
             p = cands[0]
-            near = lambda pos: any(a - WINDOW <= i <= b + WINDOW for i in pos)
+            def dist(pos):          # distance de l'expression la plus proche qui se rapporte à ce joueur, sinon None
+                d = [i - b if i >= b else a - i for i in pos if a - WINDOW <= i <= b + WINDOW
+                     and (a, b) in _closest(spans, i, words) and _linked(words, a, b, i)]
+                return min(d) if d else None
+            near = lambda pos: dist(pos) is not None
             if near(neg):
                 continue
-            status = "back" if near(back) else "doubt" if near(doubt) else "out" if near(out) else None
+            # plusieurs expressions autour du nom : la plus proche l'emporte (à égalité : retour, doute, absence)
+            cand = [(dist(pos), k, st) for k, (st, pos) in enumerate((("back", back), ("doubt", doubt), ("out", out))) if near(pos)]
+            status = min(cand)[2] if cand else None
             if status:
                 hits.append({"team": p.team, "player": p.name, "player_id": p.player_id, "status": status, "strong": near(strong),
                              "long": is_long, "source": it.source, "title": it.title, "link": it.link, "date": it.date})

@@ -119,9 +119,9 @@ def _rank_and_h2h(df: pd.DataFrame) -> pd.DataFrame:
 
     # Classement : état de la table avant la date du match (les matchs du jour sont exclus)
     for _, idx in df.groupby(["league", "season"], sort=False).indices.items():
-        table: dict[str, list[float]] = {}            # équipe -> [points, diff. de buts, buts pour]
-        for t in set(homes[idx]) | set(aways[idx]):
-            table[t] = [0.0, 0.0, 0.0]
+        # équipe -> [points, diff. de buts, buts pour] ; une équipe entre dans la table le jour de son premier
+        # match (sans quoi la liste des équipes de toute la saison, connue seulement après coup, serait utilisée)
+        table: dict[str, list[float]] = {}
         n_played = 0
         start = 0
         while start < len(idx):
@@ -129,8 +129,11 @@ def _rank_and_h2h(df: pd.DataFrame) -> pd.DataFrame:
             while end < len(idx) and dates[idx[end]] == dates[idx[start]]:
                 end += 1
             day = idx[start:end]
+            for i in day:
+                table.setdefault(homes[i], [0.0, 0.0, 0.0]); table.setdefault(aways[i], [0.0, 0.0, 0.0])
             if n_played > 0:
-                order = sorted(table, key=lambda t: tuple(table[t]), reverse=True)
+                # égalité parfaite départagée par le nom : ordre reproductible d'une exécution à l'autre
+                order = sorted(table, key=lambda t: (-table[t][0], -table[t][1], -table[t][2], t))
                 pos = {t: r + 1 for r, t in enumerate(order)}
                 for i in day:
                     rank_h[i], rank_a[i] = pos[homes[i]], pos[aways[i]]

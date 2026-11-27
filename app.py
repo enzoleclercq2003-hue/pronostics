@@ -65,17 +65,23 @@ def build_payload(df, info, log_path=None) -> dict:
     LOG = log_path or LOG
     from src.data import load_processed
     from src.pipeline_players import LEVELS
+    from src.decision import pick, upset_info, upset_risk
+    TH = cfg.PICK_THRESHOLD
 
     matches = []
     for r in df.itertuples() if len(df) else []:
         p = [float(r.p_home), float(r.p_draw), float(r.p_away)]
         has_odds = not np.isnan(r.odds_h)
         odds = [float(r.odds_h), float(r.odds_d), float(r.odds_a)] if has_odds else None
+        book = [float(r.book_h), float(r.book_d), float(r.book_a)] if has_odds else None
+        k = pick(p)
+        risk, alert = upset_risk(p, book) if k is not None else (None, False)
         matches.append({
             "league": r.league, "league_name": cfg.LEAGUES[r.league], "kickoff": r.kickoff.isoformat(),
             "day": french_date(r.local), "day_key": f"{r.local:%Y-%m-%d}", "time": f"{r.local:%H:%M}",
             "home": r.HomeTeam, "away": r.AwayTeam, "p": p, "level": r.level, "level_label": LEVELS[r.level],
-            "book": [float(r.book_h), float(r.book_d), float(r.book_a)] if has_odds else None, "odds": odds,
+            "pick": k, "risk": risk, "risk_alert": bool(alert),
+            "book": book, "odds": odds,
             "edge": [p[i] * odds[i] - 1 for i in range(3)] if has_odds else None,
             "elo": [None if np.isnan(r.elo_home) else round(float(r.elo_home)), None if np.isnan(r.elo_away) else round(float(r.elo_away))],
             "detail": r.detail if isinstance(r.detail, dict) else None})
@@ -100,7 +106,8 @@ def build_payload(df, info, log_path=None) -> dict:
             p = j[["p_home", "p_draw", "p_away"]].to_numpy(float)
             y = j.FTR.map({"H": 0, "D": 1, "A": 2}).to_numpy(int)
             hit = p.argmax(axis=1) == y
-            tracking = {"n": int(len(j)), "hits": int(hit.sum()), "accuracy": float(hit.mean()),
+            picked = p.max(axis=1) >= TH                      # pronostic émis (seuil de décision)
+            tracking = {"n": int(len(j)), "hits": int(hit.sum()), "accuracy": float(hit.mean()), "threshold": TH,
                         "logloss": float(-np.log(np.clip(p[np.arange(len(y)), y], 1e-12, 1)).mean())}
             b = j[["book_h", "book_d", "book_a"]].to_numpy(float)
             ok = ~np.isnan(b).any(axis=1)
@@ -109,11 +116,13 @@ def build_payload(df, info, log_path=None) -> dict:
                 tracking["book_accuracy"] = float((b[ok].argmax(axis=1) == y[ok]).mean())
                 tracking["model_accuracy_same"] = float(hit[ok].mean())
             book_hit = np.where(ok, np.nan_to_num(b).argmax(axis=1) == y, False)
+            book_picked = ok & (np.nan_to_num(b).max(axis=1) >= TH)
             tracking["rows"] = [{"date": f"{d:%d/%m}", "iso": f"{d:%Y-%m-%d}", "league": cfg.LEAGUES[l], "home": h, "away": a,
                                  "score": f"{int(hg)}-{int(ag)}", "p": [float(x) for x in pr], "result": int(res), "hit": bool(ok_),
-                                 "book_hit": bool(bh) if has_b else None, "book": [float(x) for x in bp] if has_b else None}
-                                for d, l, h, a, hg, ag, pr, res, ok_, bh, has_b, bp in zip(j.Date_res, j.league, j.HomeTeam, j.AwayTeam,
-                                                                                          j.FTHG, j.FTAG, p, y, hit, book_hit, ok, b)][:400]
+                                 "book_hit": bool(bh) if has_b else None, "book": [float(x) for x in bp] if has_b else None,
+                                 "pick": int(np.argmax(pr)) if pk else None, "book_pick": int(np.argmax(bp)) if bpk else None}
+                                for d, l, h, a, hg, ag, pr, res, ok_, bh, has_b, bp, pk, bpk in zip(j.Date_res, j.league, j.HomeTeam, j.AwayTeam,
+                                                                                          j.FTHG, j.FTAG, p, y, hit, book_hit, ok, b, picked, book_picked)][:400]
 
     backtest = None
     path = cfg.RESULTS_DIR / "value_backtest.csv"
@@ -124,6 +133,7 @@ def build_payload(df, info, log_path=None) -> dict:
             "generated_text": f"{info['generated']:%d/%m/%Y à %H:%M}", "history_end": f"{info['history_end']:%d/%m/%Y}",
             "n_history": int(info["n_history"]), "player_share": info.get("player_share"),
             "matches": matches, "tracking": tracking, "backtest": backtest, "value_edge": VALUE_EDGE,
+            "threshold": TH, "upset": upset_info(),
             "leagues": [{"code": c, "name": n} for c, n in cfg.LEAGUES.items()]}
 
 

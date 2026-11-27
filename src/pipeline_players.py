@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 
 import config as cfg
-from src import news
+from src import injuries, news
 from src.live_players import live_tables, probable_lineups
 from src.models import Model, load_params
 from src.player_features import LIVE_LINEUP_COLS, LIVE_PRE_COLS, build_player_features, load_tables
@@ -39,7 +39,7 @@ def player_fold(base, fixtures: pd.DataFrame | None, history: pd.DataFrame, verb
     report["news"], report["news_matches"] = pd.DataFrame(), set()
     if use_news and len(fx):
         try:
-            report["news"], rows, report["news_matches"] = news_lineups(extra_link, extra_lineups, report, list(fx["match_id"]), verbose)
+            report["news"], rows, report["news_matches"] = news_lineups(extra_link, extra_lineups, report, fx, verbose)
             extra_lineups = pd.concat([extra_lineups, rows], ignore_index=True)
         except Exception as exc:                                   # actualité indisponible : on continue sans
             report["news_error"] = f"{type(exc).__name__}: {exc}"
@@ -47,11 +47,23 @@ def player_fold(base, fixtures: pd.DataFrame | None, history: pd.DataFrame, verb
     return fold.merge(players, on="match_id", how="left"), fx, report
 
 
-def news_lineups(extra_link, extra_lineups, report, targets, verbose=False):
-    """Absences de l'actualité -> compositions probables pour les matchs à venir concernés."""
+def news_lineups(extra_link, extra_lineups, report, fx, verbose=False):
+    """Absences annoncées -> compositions probables pour les matchs à venir concernés.
+
+    Source principale : les listes de blessés et suspendus de Rotowire (src/injuries.py), structurées et
+    tenues à jour. Les articles d'actualité (src/news.py) complètent ces listes (liens, durée) et ne
+    décident seuls que pour une équipe dont Rotowire ne publie pas le match."""
+    targets = list(fx["match_id"])
     items = news.fetch(verbose=verbose)
-    ab = news.extract_absences(items, report["roster"], report["team_names"])
-    out_ids = set(ab.loc[ab.status == "out", "player_id"])
+    from_news = news.extract_absences(items, report["roster"], report["team_names"])
+    try:
+        inj, covered = injuries.absences(fx, report["roster"], report["team_names"])
+    except Exception as exc:                                   # Rotowire indisponible : articles seuls
+        inj, covered = from_news.iloc[:0], set()
+        report["injuries_error"] = f"{type(exc).__name__}: {exc}"
+    ab = injuries.merge(inj, covered, from_news)
+    report["injuries_covered"] = len(covered)
+    out_ids = {int(x) for x in ab.loc[ab.status == "out", "player_id"].dropna()}
     rows, changes = probable_lineups(extra_link, extra_lineups, targets, out_ids)
     touched = {m for m, c in changes.items() if c["h"] or c["a"]}
     games = set(extra_link.loc[extra_link.match_id.isin(touched), "game_id"])

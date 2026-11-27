@@ -244,7 +244,7 @@ h2 span{color:var(--ink3);font-weight:400;font-size:17px;letter-spacing:-.01em;m
 .trio span{display:block;font-size:13px;color:var(--ink2);margin-top:2px}
 .sheet h3{font-size:21px;letter-spacing:-.025em;font-weight:650;margin:38px 0 14px}
 .sheet .note{font-size:12.5px;color:var(--ink3);margin:10px 0 0}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}.two>*{min-width:0}
 .box{background:var(--surface);border-radius:20px;padding:18px 20px;box-shadow:inset 0 0 0 1px var(--hair)}
 .box .lbl{font-size:13px;color:var(--ink2);margin-bottom:10px;display:flex;justify-content:space-between}
 .formrow{display:flex;gap:7px}
@@ -286,10 +286,29 @@ h2 span{color:var(--ink3);font-weight:400;font-size:17px;letter-spacing:-.01em;m
 .disal b{color:#ff9f0a;font-size:14.5px;font-weight:650}.disal p{margin:6px 0 0;font-size:13.5px;color:var(--ink2);line-height:1.45}
 /* absences annoncées */
 .nw{padding:10px 0;border-top:1px solid var(--hair)}.nw:first-of-type{border-top:0;padding-top:2px}
-.nwh{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:14.5px}.nwh b{font-weight:600}
+.nwh{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:14.5px}.nwh{flex-wrap:wrap}.nwh b{font-weight:600;min-width:0;overflow-wrap:anywhere}.nwh .cf{flex:none;white-space:nowrap}
 .cf{font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap}.cf.c1{background:rgba(255,69,58,.15);color:var(--bad)}.cf.c2{background:rgba(255,159,10,.15);color:#ff9f0a}.cf.c3{background:var(--track);color:var(--ink2)}
 .src{display:block;font-size:12.5px;color:var(--ink3);margin-top:5px;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.src:hover{color:var(--accent)}
 .extra .warnx{color:#ff9f0a}
+/* pronostic seul (chiffres dans la fiche) */
+.duel{display:grid;gap:11px;margin-top:14px}
+.dl{display:flex;align-items:center;gap:11px;font-size:16px;font-weight:500;color:var(--ink2);min-width:0}
+.dl .tx{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dl.w{color:var(--ink);font-weight:650;font-size:17px}.dl.l{opacity:.55}
+.dl .wt{margin-left:auto;flex:none;font-size:11.5px;font-weight:650;padding:3px 9px;border-radius:99px;background:var(--grad);color:#fff}
+.call{margin-top:16px;padding-top:13px;border-top:1px solid var(--hair);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:12.5px;color:var(--ink3)}
+.call .cv{font-size:14.5px;font-weight:650;color:var(--ink)}.call.open .cv{color:var(--ink3);font-weight:500}
+.call .warnx{color:#ff9f0a}.call .ok{color:var(--good)}
+.feature .wpill{font-size:12.5px;font-weight:650;padding:5px 12px;border-radius:99px;background:var(--grad);color:#fff}
+.feature .lose{opacity:.55}
+.feature .verd{margin-top:16px;font-size:15px;font-weight:650;color:var(--ink2)}.feature .verd.g{display:inline-block;color:transparent;font-size:17px}.feature .verd.risk{color:#ff9f0a;font-size:13px;margin-top:8px}
+.callx{margin:24px 0 16px;text-align:center}
+.callx .k{display:block;font-size:12px;color:var(--ink3);text-transform:uppercase;letter-spacing:.09em;font-weight:600}
+.callx b{display:inline-block;font-size:30px;font-weight:700;letter-spacing:-.03em;margin-top:6px;line-height:1.15}
+.callx.open b{color:var(--ink2)}.callx p{margin:8px auto 0;font-size:13.5px;color:var(--ink2);max-width:52ch;line-height:1.45}
+.riskl{margin:14px 0 0;text-align:center;font-size:13px;color:var(--ink3)}
+.verdict.o{color:var(--ink3)}
+.pick .v .wn{font-size:12px;font-weight:650;color:#ff9f0a;white-space:nowrap}
 /* états */
 .state{text-align:center;padding:90px 20px 40px;max-width:520px;margin:0 auto}
 .state svg{width:74px;height:74px;opacity:.9;color:var(--ink)}
@@ -430,7 +449,7 @@ footer{color:var(--ink3);font-size:12px;border-top:1px solid var(--hair);margin-
 
     <div class="feat">
       <div><span class="eyebrow g">Effectifs</span><h2>La valeur du onze aligné.</h2>
-        <p>Les compositions de chaque match sont rattachées à la valeur marchande des joueurs. Le modèle utilise la valeur du dernier onze aligné et celle des onze joueurs les plus chers de l'effectif récent. Dès que la composition officielle est publiée, environ une heure avant le coup d'envoi, elle remplace cette estimation. Les absences annoncées dans l'actualité (flux publics de neuf médias) sont aussi repérées automatiquement : un titulaire annoncé absent est retiré du onze probable.</p>
+        <p>Les compositions de chaque match sont rattachées à la valeur marchande des joueurs. Le modèle utilise la valeur du dernier onze aligné et celle des onze joueurs les plus chers de l'effectif récent. Dès que la composition officielle est publiée, environ une heure avant le coup d'envoi, elle remplace cette estimation. Les blessés et suspendus de chaque match (listes d'avant-match de Rotowire, complétées par l'actualité de dix médias) sont aussi pris en compte : un titulaire absent est retiré du onze probable.</p>
         <span class="formula">v = ln Σ<sub>joueurs</sub> valeur<sub>i</sub></span></div>
       <div class="viz">
         <svg viewBox="0 0 300 330" role="img" aria-label="Onze joueurs, taille proportionnelle à leur valeur" style="max-height:330px">
@@ -459,13 +478,20 @@ footer{color:var(--ink3);font-size:12px;border-top:1px solid var(--hair);margin-
     </div>
 
     <div class="feat">
+      <div><span class="eyebrow g">Seuil et contre-performances</span><h2>Ne trancher que quand c'est net.</h2>
+        <p>Un favori à 50 % ne gagne qu'un match sur deux : le désigner vainqueur à chaque fois brouillerait le bilan. L'application ne pronostique donc un vainqueur que si sa probabilité atteint 60 %, seuil choisi sur les saisons 2020-2024 (le plus petit où les pronostics sont justes au moins deux fois sur trois) puis vérifié sur le test final 2025/26 : un match sur quatre y est pronostiqué, avec 70,8 % de pronostics justes (bookmakers soumis à la même règle : 72,2 %). Un nul n'atteint jamais ce seuil : en dessous, le match est dit ouvert. Un second modèle estime le risque que le favori ne gagne pas. La fatigue, l'enjeu et la forme n'ajoutent rien à ce que sait déjà le modèle principal ; le signal utile vient du marché : quand les bookmakers croient moins que nous en un favori, il cale bien plus souvent. Les 20 % de pronostics les plus fragiles, signalés « Risque de contre-performance », ont échoué 45 % du temps en test, contre 29 % en moyenne.</p></div>
+      <div class="viz"><div class="perf" id="thviz" role="img" aria-label="Précision selon le seuil"></div>
+        <p class="cap">Pronostics justes selon le seuil, test final 2025/26 ; entre parenthèses, part des matchs pronostiqués.</p></div>
+    </div>
+
+    <div class="feat">
       <div><span class="eyebrow g">Résultats</span><h2>Ce que ça vaut, sans embellir.</h2>
         <p>Mesuré sur le test final 2025/26 (1 752 matchs), le modèle de base donne 52,5 % de pronostics justes pour une log loss de 0,988, contre 53,3 % et 0,978 pour les bookmakers. Les ajouts testés depuis réduisent chacun la log loss en validation : valeur des effectifs −0,001, composition officielle −0,003, enjeu −0,001 (−0,005 en fin de saison). Leur effet combiné n'a pas été mesuré d'un bloc : nous estimons la version complète à environ 53 % de pronostics justes, 53 à 54 % quand la composition officielle est publiée, encore un peu en dessous des bookmakers. Les probabilités sont calibrées : une issue annoncée à 60 % se réalise environ six fois sur dix. L'onglet Suivi donnera bientôt le chiffre réel.</p></div>
       <div class="viz"><div class="perf" id="perf" role="img" aria-label="Précision comparée"></div>
         <p class="cap">Part de pronostics justes, mesurée sur le test final 2025/26, sauf la version complète (estimation).</p></div>
     </div>
 
-    <p class="fine" style="margin-top:8px">Limites : les absences annoncées sont repérées automatiquement, donc imparfaitement, et leur apport n'est pas encore mesuré ; les valeurs marchandes datent de juin 2026. En test sur six saisons, miser là où le modèle s'écarte des bookmakers a perdu de l'argent. Estimation statistique, pas un conseil de pari.</p>
+    <p class="fine" style="margin-top:8px">Limites : l'apport des absences annoncées n'est pas encore mesuré ; les valeurs marchandes datent de juin 2026. En test sur six saisons, miser là où le modèle s'écarte des bookmakers a perdu de l'argent. Estimation statistique, pas un conseil de pari.</p>
   </section>
   <footer><span id="footer"></span> <button class="link" id="quit" style="font-size:12px;margin-left:8px">Arrêter l'application</button></footer>
 </main>
@@ -493,7 +519,18 @@ const I = {
     inD: (d, h) => `dans ${d} j ${h} h`, inH: (h, m) => `dans ${h} h ${m} min`, inM: m => `dans ${m} min`, live: 'en cours ou terminé',
     absentN: (t, n) => `${t} : ${n} absents`, results: 'Derniers résultats', right: 'Pronostic juste', wrong: 'Pronostic faux', yours: 'Vos équipes',
     none: 'Aucun match à venir.', noFound: 'Aucun match ne correspond.', calendar: 'Calendrier',
-    topTitle: 'Les plus sûrs.', topSub: 'Les issues que le modèle juge les plus probables.', hosts: 'reçoit', visits: 'se déplace chez',
+    topTitle: 'Les pronostics.', topSub: th => `Les matchs où une équipe a au moins ${th} % de chances de gagner, du plus sûr au moins sûr. Le détail chiffré s'ouvre d'un clic.`, hosts: 'reçoit', visits: 'se déplace chez',
+    win: n => `Victoire ${n}`, winner: 'Vainqueur', open: 'Match ouvert', openSub: 'pas de pronostic', ourPick: 'Notre pronostic',
+    pickWhy: th => `L'issue la plus probable atteint le seuil de ${th} % : au-dessus de ce seuil, nos pronostics sont justes environ sept fois sur dix.`,
+    pickNone: th => `Aucune issue n'atteint ${th} % : trop serré pour désigner un vainqueur. Les probabilités ci-dessous restent l'estimation du modèle.`,
+    riskShort: 'Risque de contre-performance', riskT: 'Risque de contre-performance',
+    riskTxt: (tm, r, avg, ar) => `Probabilité que ${tm} ne gagne pas : ${r} %, contre ${avg} % en moyenne pour nos pronostics. Les bookmakers croient moins que le modèle en ce favori ; sur l'historique, ${ar} % des pronostics ainsi signalés n'ont pas été gagnés.`,
+    riskLow: (tm, r, avg) => `Probabilité que ${tm} ne gagne pas : ${r} % (moyenne de nos pronostics : ${avg} %).`,
+    noPick: th => `Aucun match ne dépasse ${th} % pour le moment : rien de suffisamment net à pronostiquer.`,
+    watch: 'À surveiller', watchSub: 'Pronostics que le modèle de contre-performance juge fragiles : le favori y cale bien plus souvent que d’habitude.',
+    noWatch: 'Aucun pronostic fragile repéré cette semaine.', noPickShort: 'pas de pronostic', picksOf: (n, tot) => `${n} pronostic${n > 1 ? 's' : ''} sur ${tot} matchs`,
+    allNoTh: (a, b) => `Sans seuil, en désignant un favori pour chaque match : modèle ${a} %, bookmakers ${b} %.`,
+    allNoThM: a => `Sans seuil, en désignant un favori pour chaque match : ${a} %.`,
     fair: 'cote équitable', odd: 'cote', fairNote: "La cote équitable est celle à partir de laquelle l'issue serait bien payée si le modèle avait raison.",
     gaps: 'Écarts avec les bookmakers', gapsSub: 'Issues que le modèle estime plus probables que le marché.', noGap: 'Aucun écart notable pour le moment.',
     noOdds: 'Les cotes de ces matchs ne sont pas encore publiées.', model: 'modèle', market: 'marché',
@@ -501,11 +538,11 @@ const I = {
     soon: 'Bientôt ici.', soonSub: 'Chaque prédiction est enregistrée, puis comparée au résultat une fois le match joué.',
     hits: (h, n) => `de pronostics justes, ${h} sur ${n}.`, bookAcc: (a, n) => ` Bookmakers : ${a} % sur ${n} matchs.`,
     small: "En dessous d'une centaine de matchs, ce chiffre varie beaucoup d'une semaine à l'autre.",
-    trackTitle: 'Le bilan.', trackSub: n => `Notre modèle face aux bookmakers, sur les ${n} mêmes matchs déjà joués.`,
-    trackSubNoOdds: n => `Nos pronostics sur les ${n} matchs déjà joués.`, ofN: (k, n) => `${k} justes sur ${n}`,
-    trackExtra: (n, k) => `${n} autre${n > 1 ? 's' : ''} match${n > 1 ? 's' : ''} suivi${n > 1 ? 's' : ''} sans cotes publiées, donc hors comparaison (modèle : ${k} juste${k > 1 ? 's' : ''}).`,
+    trackTitle: 'Le bilan.', trackSub: (n, th) => `Un pronostic n'est émis qu'au-dessus de ${th} % ; modèle et bookmakers suivent la même règle, sur les ${n} mêmes matchs déjà joués.`,
+    trackSubNoOdds: (n, th) => `Nos pronostics émis au-dessus de ${th} %, sur les ${n} matchs déjà joués.`, ofN: (k, n) => `${k} juste${k > 1 ? 's' : ''} sur ${n} pronostic${n > 1 ? 's' : ''}`,
+    trackExtra: (n, k, q) => `${n} autre${n > 1 ? 's' : ''} match${n > 1 ? 's' : ''} suivi${n > 1 ? 's' : ''} sans cotes publiées, donc hors comparaison (modèle : ${k} juste${k > 1 ? 's' : ''} sur ${q} pronostic${q > 1 ? 's' : ''}).`,
     byDay: 'Par journée', day: 'Journée', matchesH: 'Matchs', allMatches: 'Tous les matchs', noOddsShort: 'pas de cotes',
-    cumSame: 'Les deux courbes se superposent : le modèle et les bookmakers ont désigné le même favori dans chacun de ces matchs.',
+    cumSame: 'Les deux courbes se superposent : le modèle et les bookmakers ont émis les mêmes pronostics.',
     cumNote: (n, tot) => `Les deux courbes portent sur les mêmes ${n} matchs (sur ${tot}), ceux dont les cotes étaient publiées, et avancent ensemble match par match.`, cum: 'Réussite cumulée', us: 'Notre modèle', books: 'Bookmakers',
     form: 'Forme récente', last5: '5 derniers matchs', elo: 'Niveau Elo', eloNote: 'Note de force de chaque équipe sur ses derniers matchs de championnat.',
     scores: 'Scores les plus probables', scoresNote: 'Selon le modèle de buts (Dixon-Coles), qui peut différer légèrement des probabilités finales.',
@@ -520,7 +557,7 @@ const I = {
     lvl: {composition: 'Composition officielle prise en compte', actualite: 'Absences annoncées prises en compte', effectifs: 'Valeur des effectifs prise en compte', base: 'Modèle de base'},
     newsT: 'Absences annoncées', newsN: n => `${n} absent${n > 1 ? 's' : ''} annoncé${n > 1 ? 's' : ''}`, longT: 'longue durée',
     conf: {'confirmée': 'Absent · confirmé', 'probable': 'Absent · probable', 'incertain': 'Incertain'},
-    newsNote: "Repérées automatiquement dans les flux d'actualité publics (BBC, The Guardian, L'Équipe, AS, Gazzetta, Sportschau…). « Confirmé » : annoncé par au moins deux médias, ou sans ambiguïté (opération, forfait…). Les absences confirmées ou probables d'un titulaire habituel sont intégrées aux probabilités ; vérifiez la source en cas de doute.",
+    newsNote: "Source principale : les listes de blessés et suspendus publiées avant chaque match par Rotowire, tenues à jour par sa rédaction. Les articles des médias (BBC, The Guardian, L'Équipe, AS, Gazzetta, Foot Mercato…) complètent ces listes avec leurs liens ; ils ne comptent seuls que pour une équipe dont la liste n'est pas publiée. Les absences d'un titulaire habituel sont intégrées aux probabilités ; un joueur « incertain » ne l'est pas.",
     viz: {hda: ['domicile', 'nul', 'extérieur'], perf: ['Hasard', 'Toujours miser sur le domicile', 'Elo seul', 'Notre modèle de base', 'Version complète (estimation)', 'Bookmakers'],
           perfPub: ['Hasard', 'Toujours miser sur le domicile', 'Elo seul', 'Notre modèle', 'Bookmakers'],
           st: ['Titre', 'Europe', 'Maintien', 'Plus rien à jouer'], stTeams: ['Équipe A, en course pour l’Europe', 'Équipe B, milieu de tableau'],
@@ -534,7 +571,18 @@ const I = {
     inD: (d, h) => `in ${d}d ${h}h`, inH: (h, m) => `in ${h}h ${m}min`, inM: m => `in ${m} min`, live: 'in progress or finished',
     absentN: (t, n) => `${t}: ${n} absent`, results: 'Latest results', right: 'Correct pick', wrong: 'Wrong pick', yours: 'Your teams',
     none: 'No upcoming match.', noFound: 'No match found.', calendar: 'Fixtures',
-    topTitle: 'Safest picks.', topSub: 'The outcomes the model rates most likely.', hosts: 'hosts', visits: 'away at',
+    topTitle: 'Our picks.', topSub: th => `Matches where one side has at least a ${th}% chance of winning, safest first. Tap for the numbers.`, hosts: 'hosts', visits: 'away at',
+    win: n => `${n} to win`, winner: 'Winner', open: 'Too close to call', openSub: 'no pick', ourPick: 'Our pick',
+    pickWhy: th => `The most likely outcome reaches the ${th}% threshold: above it, our picks are right about seven times in ten.`,
+    pickNone: th => `No outcome reaches ${th}%: too close to name a winner. The probabilities below are still the model’s estimate.`,
+    riskShort: 'Upset risk', riskT: 'Upset risk',
+    riskTxt: (tm, r, avg, ar) => `Chance that ${tm} fail to win: ${r}%, against ${avg}% on average for our picks. The bookmakers rate this favourite lower than the model does; historically, ${ar}% of picks flagged like this were not won.`,
+    riskLow: (tm, r, avg) => `Chance that ${tm} fail to win: ${r}% (average for our picks: ${avg}%).`,
+    noPick: th => `No match clears ${th}% right now: nothing clear-cut enough to call.`,
+    watch: 'Watch out', watchSub: 'Picks the upset model rates as fragile: favourites slip up here far more often than usual.',
+    noWatch: 'No fragile pick spotted this week.', noPickShort: 'no pick', picksOf: (n, tot) => `${n} pick${n > 1 ? 's' : ''} out of ${tot} matches`,
+    allNoTh: (a, b) => `Without a threshold, naming a favourite for every match: model ${a}%, bookmakers ${b}%.`,
+    allNoThM: a => `Without a threshold, naming a favourite for every match: ${a}%.`,
     fair: 'fair odds', odd: 'odds', fairNote: 'Fair odds are the price above which the outcome would pay well if the model were right.',
     gaps: 'Gaps with the bookmakers', gapsSub: 'Outcomes the model rates more likely than the market does.', noGap: 'No notable gap right now.',
     noOdds: 'Odds for these matches are not published yet.', model: 'model', market: 'market',
@@ -542,11 +590,11 @@ const I = {
     soon: 'Coming soon.', soonSub: 'Every prediction is logged, then compared with the result once the match is played.',
     hits: (h, n) => `correct picks, ${h} of ${n}.`, bookAcc: (a, n) => ` Bookmakers: ${a}% over ${n} matches.`,
     small: 'Below a hundred matches or so, this figure swings a lot from week to week.',
-    trackTitle: 'The record.', trackSub: n => `Our model against the bookmakers, on the same ${n} matches already played.`,
-    trackSubNoOdds: n => `Our picks on the ${n} matches already played.`, ofN: (k, n) => `${k} correct out of ${n}`,
-    trackExtra: (n, k) => `${n} other match${n > 1 ? 'es' : ''} tracked without published odds, hence left out of the comparison (model: ${k} correct).`,
+    trackTitle: 'The record.', trackSub: (n, th) => `A pick is only made above ${th}%; the model and the bookmakers follow the same rule, on the same ${n} matches already played.`,
+    trackSubNoOdds: (n, th) => `Our picks made above ${th}%, on the ${n} matches already played.`, ofN: (k, n) => `${k} correct out of ${n} pick${n > 1 ? 's' : ''}`,
+    trackExtra: (n, k, q) => `${n} other match${n > 1 ? 'es' : ''} tracked without published odds, hence left out of the comparison (model: ${k} correct out of ${q} pick${q > 1 ? 's' : ''}).`,
     byDay: 'By matchday', day: 'Day', matchesH: 'Matches', allMatches: 'All matches', noOddsShort: 'no odds',
-    cumSame: 'The two curves overlap: the model and the bookmakers picked the same favourite in every one of these matches.',
+    cumSame: 'The two curves overlap: the model and the bookmakers made the same picks.',
     cumNote: (n, tot) => `Both curves cover the same ${n} matches (out of ${tot}), those whose odds were published, and move together match by match.`, cum: 'Cumulative accuracy', us: 'Our model', books: 'Bookmakers',
     form: 'Recent form', last5: 'Last 5 matches', elo: 'Elo rating', eloNote: 'Strength rating of each team over its latest league matches.',
     scores: 'Most likely scores', scoresNote: 'From the goals model (Dixon-Coles), which may differ slightly from the final probabilities.',
@@ -561,7 +609,7 @@ const I = {
     lvl: {composition: 'Official line-up included', actualite: 'Reported absences included', effectifs: 'Squad value included', base: 'Base model'},
     newsT: 'Reported absences', newsN: n => `${n} reported absent`, longT: 'long term',
     conf: {'confirmée': 'Out · confirmed', 'probable': 'Out · likely', 'incertain': 'Doubtful'},
-    newsNote: 'Picked up automatically from public news feeds (BBC, The Guardian, L’Équipe, AS, Gazzetta, Sportschau…). “Confirmed”: reported by at least two outlets, or unambiguous (surgery, ruled out…). Confirmed or likely absences of regular starters are built into the probabilities; check the source when in doubt.',
+    newsNote: 'Main source: the injury and suspension lists Rotowire publishes before each match, kept up to date by its editors. Articles from news outlets (BBC, The Guardian, L’Équipe, AS, Gazzetta, Foot Mercato…) add their links to these lists; they only count on their own for a team whose list is not published. Absences of regular starters are built into the probabilities; a “doubtful” player is not.',
     viz: {hda: ['home', 'draw', 'away'], perf: ['Chance', 'Always pick the home side', 'Elo only', 'Our base model', 'Full version (estimate)', 'Bookmakers'],
           perfPub: ['Chance', 'Always pick the home side', 'Elo only', 'Our model', 'Bookmakers'],
           st: ['Title', 'Europe', 'Survival', 'Nothing left to play for'], stTeams: ['Team A, chasing Europe', 'Team B, mid-table'],
@@ -664,36 +712,38 @@ const mid = m => `${m.league}|${m.home}|${m.away}`;
 const byId = id => DATA.matches.find(m => mid(m) === id);
 
 // ---- cartes -----------------------------------------------------------------------------------
-function card(m, i) {
-  const f = fav(m), clear = m.p[f] >= 0.42;
-  const row = (label, k, cls, team) => `<div class="row ${cls} ${k === f && clear ? 'fav' : ''}"><span class="name">${team ? crest(team) : '<span class="crest none"></span>'}<span class="tx">${esc(label)}</span></span>${pc(m.p[k])}<i class="track"><b style="width:${num(m.p[k])}%"></b></i></div>`;
-  const sc = topScores(m, 3).map(x => x.s).join(' · ');
+// Pronostic affiché : vainqueur si son issue atteint le seuil (m.pick), sinon « match ouvert ». Aucun chiffre
+// sur les cartes : les probabilités sont dans la fiche du match.
+const TH = () => Math.round(((DATA && DATA.threshold) || 0.6) * 100);
+const pickOfM = m => m.pick === undefined ? (Math.max(...m.p) >= TH() / 100 ? fav(m) : null) : m.pick;
+const callText = (m, k) => k == null ? t('open') : k === 1 ? t('drawLong') : t('win', nm(k === 0 ? m.home : m.away));
+function flag(m) {                          // une seule mention, la plus utile
   const d = m.detail, ab = d && [[m.home, d.home.absent.length], [m.away, d.away.absent.length]].filter(x => x[1] >= 3).sort((a, b) => b[1] - a[1])[0];
   const nn = d && d.home.news ? d.home.news.concat(d.away.news).filter(x => x.status === 'out').length : 0;
-  const dg = disagreement(m);
-  const right = dg ? `<span class="warnx">⚠ ${esc(t('disShort'))}</span>` : m.level === 'composition' ? `<span class="ok">${esc(t('lvl').composition)}</span>` : nn ? `<span class="warnx">${esc(t('newsN', nn))}</span>` : ab ? `<span>${esc(t('absentN', nm(ab[0]), ab[1]))}</span>` : '';
-  return `<article class="card" style="--i:${Math.min(i, 14)}" data-id="${esc(mid(m))}" tabindex="0" role="button" aria-label="${esc(nm(m.home))} – ${esc(nm(m.away))}">
+  return m.risk_alert ? `<span class="warnx">⚠ ${esc(t('riskShort'))}</span>` : disagreement(m) ? `<span class="warnx">⚠ ${esc(t('disShort'))}</span>`
+    : m.level === 'composition' ? `<span class="ok">${esc(t('lvl').composition)}</span>` : nn ? `<span class="warnx">${esc(t('newsN', nn))}</span>`
+    : ab ? `<span>${esc(t('absentN', nm(ab[0]), ab[1]))}</span>` : '';
+}
+function card(m, i) {
+  const k = pickOfM(m);
+  const team = (tm, side) => `<div class="dl ${k == null || k === 1 ? '' : k === side ? 'w' : 'l'}">${crest(tm)}<span class="tx">${esc(nm(tm))}</span>${k === side ? `<span class="wt">${esc(t('winner'))}</span>` : ''}</div>`;
+  return `<article class="card" style="--i:${Math.min(i, 14)}" data-id="${esc(mid(m))}" tabindex="0" role="button" aria-label="${esc(nm(m.home))} – ${esc(nm(m.away))} : ${esc(callText(m, k))}">
     <div class="meta"><span>${esc(m.league_name)}</span><span>${esc(m.time)}</span></div>
-    ${row(nm(m.home), 0, '', m.home)}${row(t('draw'), 1, 'draw')}${row(nm(m.away), 2, '', m.away)}
-    ${sc || right ? `<div class="extra"><span>${esc(sc)}</span>${right}</div>` : ''}</article>`;
+    <div class="duel">${team(m.home, 0)}${team(m.away, 2)}</div>
+    <div class="call ${k == null ? 'open' : ''}"><span class="cv">${esc(k == null ? `${t('open')} · ${t('openSub')}` : callText(m, k))}</span>${flag(m)}</div></article>`;
 }
 function feature(m) {
-  const f = fav(m), clear = m.p[f] >= 0.42;                 // même règle que les cartes : pas de favori net, pas de mise en avant
-  const big = k => `<div class="big ${k === f && clear ? 'g' : ''}">${num(m.p[k])}<small style="font-size:.5em;${k === f && clear ? '' : 'color:var(--ink3)'}"> %</small></div>`;
+  const k = pickOfM(m);                      // vainqueur pronostiqué mis en avant, sans chiffres
+  const side = (tm, s) => `<div class="side ${k === 0 || k === 2 ? (k === s ? '' : 'lose') : ''}">${crest(tm)}<div class="tn">${esc(nm(tm))}</div>${k === s ? `<span class="wpill">${esc(t('winner'))}</span>` : ''}</div>`;
   return `<div class="feature" data-id="${esc(mid(m))}" tabindex="0" role="button">
-    <div class="side">${crest(m.home)}<div class="tn">${esc(nm(m.home))}</div>${big(0)}</div>
+    ${side(m.home, 0)}
     <div class="mid"><div class="tag g">${esc(t('featured'))}</div><div class="cd">${esc(m.league_name)} · ${esc(when(m))}</div><div class="cd" data-cd="${esc(mid(m))}">${esc(countdown(m))}</div>
-      <div class="drawp"><b class="${f === 1 && clear ? 'g' : ''}">${num(m.p[1])} %</b>${esc(t('draw'))}</div></div>
-    <div class="side">${crest(m.away)}<div class="tn">${esc(nm(m.away))}</div>${big(2)}</div></div>`;
+      <div class="verd ${k == null ? '' : 'g'}">${esc(callText(m, k))}</div>${m.risk_alert ? `<div class="verd risk">⚠ ${esc(t('riskShort'))}</div>` : ''}</div>
+    ${side(m.away, 2)}</div>`;
 }
-function resultCard(r, i) {
-  const [hg, ag] = r.score.split('-').map(Number), f = r.p.indexOf(Math.max(...r.p));
-  const who = f === 1 ? t('drawLong') : nm(f === 0 ? r.home : r.away);
-  return `<article class="card" style="--i:${Math.min(i, 14)};cursor:default"><div class="meta"><span>${esc(r.league)}</span><span>${esc(r.date)}</span></div>
-    <div class="res"><span class="tm ${hg > ag ? 'w' : ''}">${crest(r.home)}<span class="tx">${esc(nm(r.home))}</span></span><span class="sc ${hg > ag ? 'w' : ''}">${hg}</span>
-      <span class="tm ${ag > hg ? 'w' : ''}">${crest(r.away)}<span class="tx">${esc(nm(r.away))}</span></span><span class="sc ${ag > hg ? 'w' : ''}">${ag}</span></div>
-    <div class="extra"><span class="verdict ${r.hit ? 'y' : 'n'}">${esc(t(r.hit ? 'right' : 'wrong'))}</span><span>${esc(who)} ${num(r.p[f])} %</span></div></article>`;
-}
+// pronostic d'une ligne du suivi (journal antérieur au seuil : on applique la même règle aux probabilités enregistrées)
+const rowPick = r => r.pick !== undefined ? r.pick : (Math.max(...r.p) >= TH() / 100 ? r.p.indexOf(Math.max(...r.p)) : null);
+const rowBookPick = r => r.book_pick !== undefined ? r.book_pick : (r.book && Math.max(...r.book) >= TH() / 100 ? r.book.indexOf(Math.max(...r.book)) : null);
 
 function renderMatchs() {
   const el = $('#tab-matchs'), ms = DATA.matches;
@@ -703,10 +753,9 @@ function renderMatchs() {
   const shown = ms.filter(m => (FILTER === 'all' || (FILTER === 'fav' ? FAVS.has(m.home) || FAVS.has(m.away) : m.league === FILTER))
     && (!q || norm(nm(m.home) + ' ' + m.home + ' ' + nm(m.away) + ' ' + m.away).includes(q)));
   const plain = FILTER === 'all' && !q;
-  const star = ms.filter(m => m.elo && m.elo[0] && m.elo[1]).sort((a, b) => (b.elo[0] + b.elo[1]) - (a.elo[0] + a.elo[1]))[0];
+  // à l'affiche : le plus beau match (niveau Elo cumulé) parmi ceux qui ont un pronostic ; aucun pronostic, pas d'affiche
+  const star = ms.filter(m => pickOfM(m) != null && m.elo && m.elo[0] && m.elo[1]).sort((a, b) => (b.elo[0] + b.elo[1]) - (a.elo[0] + a.elo[1]))[0];
   const mine = plain ? ms.filter(m => FAVS.has(m.home) || FAVS.has(m.away)) : [];
-  const cut = Date.now() - 8 * 864e5;
-  const recent = plain ? (DATA.tracking.rows || []).filter(r => r.iso && new Date(r.iso) >= cut).slice(0, 12) : [];
   const days = [...new Set(shown.map(m => m.day_key))];
   let i = 0;
   const focus = document.activeElement && document.activeElement.id === 'q';
@@ -718,7 +767,6 @@ function renderMatchs() {
        ${leagues.map(l => `<button class="f" data-f="${esc(l.code)}" aria-pressed="${FILTER === l.code}">${esc(l.name)}</button>`).join('')}</div>
        <input class="search" id="q" type="search" placeholder="${esc(t('search'))}" value="${esc(QUERY)}" aria-label="${esc(t('search'))}"></div>`
     + (mine.length ? `<h2>${esc(t('yours'))}<span>${esc(t('nmatch', mine.length))}</span></h2><div class="grid">${mine.map(m => card(m, i++)).join('')}</div>` : '')
-    + (recent.length ? `<h2>${esc(t('results'))}<span>${recent.filter(r => r.hit).length} / ${recent.length}</span></h2><div class="grid">${recent.map(r => resultCard(r, i++)).join('')}</div>` : '')
     + (shown.length ? days.map(d => { const g = shown.filter(m => m.day_key === d);
         return `<h2>${esc(cap(fmt(g[0].kickoff, {weekday: 'long', day: 'numeric', month: 'long'})))}<span>${esc(t('nmatch', g.length))}</span></h2><div class="grid">${g.map(m => card(m, i++)).join('')}</div>`; }).join('')
       : `<p class="empty" style="margin-top:34px">${esc(t('noFound'))}</p>`);
@@ -738,18 +786,15 @@ const pick = (n, m, title, sub, value, small, grad, logo) => `<li class="pick ha
 function renderTop() {
   const el = $('#tab-top'), ms = DATA.matches;
   if (!ms.length) { el.innerHTML = hero(t('top'), t('none'), ''); return; }
-  const sure = ms.map(m => ({m, f: fav(m)})).sort((a, b) => b.m.p[b.f] - a.m.p[a.f]).slice(0, 8);
-  const edges = [];
-  ms.forEach(m => m.edge && m.edge.forEach((e, k) => { if (e > DATA.value_edge) edges.push({m, k, e}); }));
-  edges.sort((a, b) => b.e - a.e);
-  el.innerHTML = hero(t('top'), t('topTitle'), t('topSub'))
-    + `<ol class="list">${sure.map((x, n) => pick(n + 1, x.m, outcome(x.m, x.f), `${versus(x.m, x.f)} · ${x.m.league_name} · ${when(x.m)}`, pc(x.m.p[x.f]),
-        x.m.odds ? `${t('odd')} ${dec(x.m.odds[x.f])} · ${t('fair')} ${dec(1 / x.m.p[x.f])}` : `${t('fair')} ${dec(1 / x.m.p[x.f])}`, n < 3, badge(x.m, x.f))).join('')}</ol>
-       <p class="fine">${esc(t('fairNote'))}</p><h2>${esc(t('gaps'))}</h2>`
-    + (edges.length ? `<p class="lead">${esc(t('gapsSub'))}</p><ol class="list">${edges.slice(0, 8).map((x, n) => pick(n + 1, x.m, outcome(x.m, x.k), `${versus(x.m, x.k)} · ${x.m.league_name} · ${when(x.m)}`,
-          `<span class="pc">+${num(x.e)}<small>%</small></span>`, `${t('model')} ${num(x.m.p[x.k])} % · ${t('market')} ${num(x.m.book[x.k])} % · ${t('odd')} ${dec(x.m.odds[x.k])}`, false, badge(x.m, x.k))).join('')}</ol>`
-        : `<p class="empty">${esc(t(ms.some(m => m.book) ? 'noGap' : 'noOdds'))}</p>`)
-    + `<p class="fine">${esc(t('gapWarn'))}</p>`;
+  // pronostics émis (au-dessus du seuil), du plus sûr au moins sûr ; aucun chiffre, le détail s'ouvre d'un clic
+  const picks = ms.map(m => ({m, k: pickOfM(m)})).filter(x => x.k != null).sort((a, b) => b.m.p[b.k] - a.m.p[a.k]);
+  const watch = picks.filter(x => x.m.risk_alert);
+  const item = (x, n) => pick(n + 1, x.m, callText(x.m, x.k), `${versus(x.m, x.k)} · ${x.m.league_name} · ${when(x.m)}`,
+    x.m.risk_alert ? `<span class="wn">⚠ ${esc(t('riskShort'))}</span>` : '', '', false, badge(x.m, x.k));
+  el.innerHTML = hero(t('top'), t('topTitle'), t('topSub', TH()))
+    + (picks.length ? `<ol class="list">${picks.map(item).join('')}</ol>` : `<p class="empty">${esc(t('noPick', TH()))}</p>`)
+    + `<h2>${esc(t('watch'))}</h2>`
+    + (watch.length ? `<p class="lead">${esc(t('watchSub'))}</p><ol class="list">${watch.map(item).join('')}</ol>` : `<p class="empty">${esc(t('noWatch'))}</p>`);
 }
 
 // ---- suivi --------------------------------------------------------------------------------------
@@ -768,39 +813,42 @@ function renderSuivi() {
   const el = $('#tab-suivi'), tr = DATA.tracking;
   if (!tr.n) { el.innerHTML = `<div class="state">${RING}<h2>${esc(t('soon'))}</h2><p>${esc(t('soonSub'))}</p></div>`; return; }
   const rows = [...tr.rows].sort((a, b) => (a.iso || '').localeCompare(b.iso || ''));       // ordre chronologique
-  // Une seule base de comparaison : les matchs dont les cotes étaient publiées. Tous les chiffres du haut,
-  // la courbe et le tableau par journée portent sur ces mêmes matchs.
+  // Base de comparaison unique : les matchs dont les cotes étaient publiées. Un pronostic n'est compté que
+  // s'il a été émis (issue au-dessus du seuil), pour le modèle comme pour les bookmakers.
   const cmp = rows.filter(r => r.book_hit != null);
   const base = cmp.length ? cmp : rows, withBook = cmp.length > 0;
-  const mHits = base.filter(r => r.hit).length, bHits = withBook ? base.filter(r => r.book_hit).length : 0;
+  const mP = base.filter(r => rowPick(r) != null), bP = withBook ? base.filter(r => rowBookPick(r) != null) : [];
+  const mHits = mP.filter(r => r.hit).length, bHits = bP.filter(r => r.book_hit).length;
   const pct = (k, n) => n ? Math.round(k / n * 100) : 0;
-  const tile = (label, k, n, grad) => `<div class="kp"><span class="kl">${esc(label)}</span><b class="${grad ? 'g' : ''}">${pct(k, n)}<small>%</small></b><span class="kn">${esc(t('ofN', k, n))}</span></div>`;
-  const extra = rows.length - base.length;
-  // courbe
-  let h = 0, bh = 0;
-  const acc = base.map((r, i) => (h += r.hit ? 1 : 0) / (i + 1));
-  const bacc = withBook ? base.map((r, i) => (bh += r.book_hit ? 1 : 0) / (i + 1)) : [];
+  const tile = (label, k, n, grad) => `<div class="kp"><span class="kl">${esc(label)}</span><b class="${grad ? 'g' : ''}">${n ? pct(k, n) : '–'}<small>%</small></b><span class="kn">${esc(t('ofN', k, n))}</span><span class="kn">${esc(t('picksOf', n, base.length))}</span></div>`;
+  const others = rows.filter(r => r.book_hit == null), oP = others.filter(r => rowPick(r) != null);
+  // courbe : réussite cumulée des pronostics émis, au fil des matchs
+  let h = 0, c = 0, bh = 0, bc = 0;
+  const acc = base.map(r => { if (rowPick(r) != null) { c++; h += r.hit ? 1 : 0; } return c ? h / c : null; });
+  const bacc = withBook ? base.map(r => { if (rowBookPick(r) != null) { bc++; bh += r.book_hit ? 1 : 0; } return bc ? bh / bc : null; }) : [];
   const series = [{values: acc, grad: true, label: t('us')}].concat(withBook ? [{values: bacc, label: t('books')}] : []);
-  const same = withBook && acc.every((v, i) => Math.abs(v - bacc[i]) < 1e-9);
-  // tableau par journée
+  const same = withBook && acc.every((v, i) => v === bacc[i] || (v != null && bacc[i] != null && Math.abs(v - bacc[i]) < 1e-9));
+  // tableau par journée : justes / émis
   const days = [...new Set(base.map(r => r.iso))].reverse();
+  const cell = (g, pk, hk) => { const e = g.filter(pk); return e.length ? `<b>${e.filter(hk).length}</b> / ${e.length}` : '–'; };
   const dayRows = days.map(d => { const g = base.filter(r => r.iso === d);
     return `<tr><td>${esc(cap(fmt(d + 'T12:00:00Z', {weekday: 'long', day: 'numeric', month: 'long'})))}</td><td class="r">${g.length}</td>
-      <td class="r"><b>${g.filter(r => r.hit).length}</b></td>${withBook ? `<td class="r">${g.filter(r => r.book_hit).length}</td>` : ''}</tr>`; }).join('');
-  // liste des matchs
-  const OUT = [t('home'), t('draw'), t('away')];
-  const pickOf = (pr, r) => { const k = pr.indexOf(Math.max(...pr)); return `${esc(k === 1 ? t('draw') : nm(k === 0 ? r.home : r.away))} <span class="pp">${num(pr[k])} %</span>`; };
-  const mark = ok => `<i class="mk ${ok ? 'y' : 'n'}">${ok ? '✓' : '✕'}</i>`;
-  const list = [...rows].reverse().map(r => `<li class="sv">
+      <td class="r">${cell(g, r => rowPick(r) != null, r => r.hit)}</td>${withBook ? `<td class="r">${cell(g, r => rowBookPick(r) != null, r => r.book_hit)}</td>` : ''}</tr>`; }).join('');
+  // liste des matchs : pronostic émis ou non, sans chiffres
+  const callOf = (k, r) => k == null ? `<span class="na2">${esc(t('noPickShort'))}</span>` : esc(k === 1 ? t('draw') : nm(k === 0 ? r.home : r.away));
+  const mark = (k, ok) => k == null ? `<i class="mk" style="color:var(--ink3)">–</i>` : `<i class="mk ${ok ? 'y' : 'n'}">${ok ? '✓' : '✕'}</i>`;
+  const list = [...rows].reverse().map(r => { const k = rowPick(r), bk = rowBookPick(r); return `<li class="sv">
       <div class="svm"><div class="t">${esc(nm(r.home))} <span class="sc2">${esc(r.score)}</span> ${esc(nm(r.away))}</div><div class="s">${esc(r.league)} · ${esc(r.date)}</div></div>
-      <div class="svp"><span class="who">${esc(t('us'))}</span>${mark(r.hit)}<span>${pickOf(r.p, r)}</span></div>
-      <div class="svp">${r.book ? `<span class="who">${esc(t('books'))}</span>${mark(r.book_hit)}<span>${pickOf(r.book, r)}</span>` : `<span class="who">${esc(t('books'))}</span><span class="na">${esc(t('noOddsShort'))}</span>`}</div></li>`).join('');
+      <div class="svp"><span class="who">${esc(t('us'))}</span>${mark(k, r.hit)}<span>${callOf(k, r)}</span></div>
+      <div class="svp">${r.book ? `<span class="who">${esc(t('books'))}</span>${mark(bk, r.book_hit)}<span>${callOf(bk, r)}</span>` : `<span class="who">${esc(t('books'))}</span><span class="na">${esc(t('noOddsShort'))}</span>`}</div></li>`; }).join('');
+  const allM = pct(base.filter(r => r.hit).length, base.length), allB = withBook ? pct(base.filter(r => r.book_hit).length, base.length) : 0;
   el.innerHTML = `<div class="hero"><span class="eyebrow g">${esc(t('suivi'))}</span><h1>${esc(t('trackTitle'))}</h1>
-      <p>${esc(withBook ? t('trackSub', base.length) : t('trackSubNoOdds', base.length))}</p></div>
-    <div class="kps">${tile(t('us'), mHits, base.length, true)}${withBook ? tile(t('books'), bHits, base.length, false) : ''}</div>
-    ${extra > 0 ? `<p class="fine" style="margin:14px 0 0">${esc(t('trackExtra', extra, rows.filter(r => r.book_hit == null).filter(r => r.hit).length))}</p>` : ''}
-    ${base.length < 100 ? `<p class="fine" style="margin:6px 0 0">${esc(t('small'))}</p>` : ''}
-    ${base.length >= 5 ? `<h2>${esc(t('cum'))}</h2><div class="chart" style="margin-bottom:10px">${lineChart(series, {lo: 0, hi: 1, ticks: [.2, .4, .6, .8], fmt: v => num(v) + ' %'})}</div>
+      <p>${esc(withBook ? t('trackSub', base.length, TH()) : t('trackSubNoOdds', base.length, TH()))}</p></div>
+    <div class="kps">${tile(t('us'), mHits, mP.length, true)}${withBook ? tile(t('books'), bHits, bP.length, false) : ''}</div>
+    <p class="fine" style="margin:14px 0 0">${esc(withBook ? t('allNoTh', allM, allB) : t('allNoThM', allM))}</p>
+    ${others.length ? `<p class="fine" style="margin:6px 0 0">${esc(t('trackExtra', others.length, oP.filter(r => r.hit).length, oP.length))}</p>` : ''}
+    ${mP.length < 100 ? `<p class="fine" style="margin:6px 0 0">${esc(t('small'))}</p>` : ''}
+    ${mP.length >= 5 ? `<h2>${esc(t('cum'))}</h2><div class="chart" style="margin-bottom:10px">${lineChart(series, {lo: 0, hi: 1, ticks: [.2, .4, .6, .8], fmt: v => num(v) + ' %'})}</div>
       ${same ? `<p class="fine" style="margin:0">${esc(t('cumSame'))}</p>` : ''}` : ''}
     <h2>${esc(t('byDay'))}</h2>
     <div class="box"><table class="dt"><thead><tr><th>${esc(t('day'))}</th><th class="r">${esc(t('matchesH'))}</th><th class="r">${esc(t('us'))}</th>${withBook ? `<th class="r">${esc(t('books'))}</th>` : ''}</tr></thead><tbody>${dayRows}</tbody></table></div>
@@ -810,7 +858,7 @@ function renderSuivi() {
 // ---- fiche de match -----------------------------------------------------------------------------
 function openDetail(m) {
   closeDetail();
-  const d = m.detail, f = fav(m), lab = [nm(m.home), t('drawLong'), nm(m.away)];
+  const d = m.detail, f = fav(m), pk = pickOfM(m), lab = [nm(m.home), t('drawLong'), nm(m.away)];
   const star = team => `<button class="star ${FAVS.has(team) ? 'on' : ''}" data-fav="${esc(team)}" title="${esc(t(FAVS.has(team) ? 'unfav' : 'fav'))}" aria-label="${esc(t(FAVS.has(team) ? 'unfav' : 'fav'))}">${FAVS.has(team) ? '★' : '☆'}</button>`;
   const side = team => `<div class="side">${crest(team)}<div class="tn">${esc(nm(team))}${star(team)}</div></div>`;
   const formBox = (team, td) => `<div class="box"><div class="lbl"><span>${esc(nm(team))}</span><span>${esc(t('last5'))}</span></div><div class="formrow">${
@@ -818,8 +866,14 @@ function openDetail(m) {
   let html = `<button class="x" aria-label="${esc(t('close'))}">×</button>
     <div class="when">${esc(m.league_name)} · ${esc(cap(fmt(m.kickoff, {weekday: 'long', day: 'numeric', month: 'long'})))} · ${esc(m.time)} · ${esc(countdown(m))}</div>
     <div class="vs">${side(m.home)}<span class="sep">vs</span>${side(m.away)}</div>
+    <div class="callx ${pk == null ? 'open' : ''}"><span class="k">${esc(t('ourPick'))}</span><b class="${pk == null ? '' : 'g'}">${esc(callText(m, pk))}</b>
+      <p>${esc(pk == null ? t('pickNone', TH()) : t('pickWhy', TH()))}</p></div>
     <div class="trio">${m.p.map((v, k) => `<div><b class="${k === f ? 'g' : ''}">${num(v)}<small>%</small></b><span>${esc(lab[k])}</span></div>`).join('')}</div>
     <p class="note" style="text-align:center">${esc(t('lvl')[m.level] || '')}</p>`;
+  const U = DATA.upset, ft = pk === 0 ? nm(m.home) : pk === 2 ? nm(m.away) : null;
+  if (ft && m.risk != null && U) html += m.risk_alert
+    ? `<div class="disal"><b>⚠ ${esc(t('riskT'))}</b><p>${esc(t('riskTxt', ft, num(m.risk), num(U.mean), num(U.alert_rate)))}</p></div>`
+    : `<p class="riskl">${esc(t('riskLow', ft, num(m.risk), num(U.mean)))}</p>`;
   if (d) {
     if (d.home.form.length || d.away.form.length) html += `<h3>${esc(t('form'))}</h3><div class="two">${formBox(m.home, d.home)}${formBox(m.away, d.away)}</div>`;
     if (d.home.elo.length > 2 && d.away.elo.length > 2) {
@@ -866,11 +920,12 @@ const EN_MODEL = ['Model', 'Under the hood.', 'Every probability comes out of a 
   'Dixon-Coles', 'A model of goals.', 'Each team’s goals follow a Poisson distribution whose attack and defence parameters are estimated by maximum likelihood, on a three-year rolling window with exponential decay (240-day half-life). A dependence term τ corrects the frequency of low scores.', 'Try it: each cell is the probability of a score (rows: home goals, columns: away goals).',
   'Recent form', 'The latest matches weigh more.', 'Points, goals, shots, shots on target and corners are summarised by exponentially weighted moving averages, computed separately at home and away. Only strictly earlier matches are used: no statistic from the match being predicted enters the calculation.', 'Sketch: weight of the last ten matches, most recent first.',
   'Stakes', 'What is left to play for.', 'Before each match, the table tells whether each team can still chase the title, Europe or survival given the points still at stake, and how tight it is. A team with nothing left to play for does worse than its strength suggests. Over the last quarter of the season, these features cut log loss by 0.005 in validation.', 'Sketch: stakes for two teams with five matchdays left.',
-  'Squads', 'The value of the starting eleven.', 'Each match’s line-ups are linked to the players’ market values. The model uses the value of the last starting eleven and that of the eleven most valuable players in the recent squad. As soon as the official line-up is published, about an hour before kick-off, it replaces this estimate. Absences reported in the news (public feeds from nine outlets) are also picked up automatically: a regular starter reported out is removed from the likely eleven.', 'Sketch: each player counts according to his market value.',
+  'Squads', 'The value of the starting eleven.', 'Each match’s line-ups are linked to the players’ market values. The model uses the value of the last starting eleven and that of the eleven most valuable players in the recent squad. As soon as the official line-up is published, about an hour before kick-off, it replaces this estimate. Each match’s injured and suspended players (Rotowire’s pre-match lists, completed by news from ten outlets) are also taken into account: a regular starter who is out is removed from the likely eleven.', 'Sketch: each player counts according to his market value.',
   'Algorithm', 'Simple, because it is the best.', 'Standardised features feed a multinomial logistic regression with strong L2 regularisation (C = 3.4 × 10⁻⁴), tuned by Bayesian optimisation (Optuna, TPE sampler, 100 trials). It was compared with LightGBM, XGBoost, CatBoost, HistGradientBoosting, Random Forest, ExtraTrees and a multilayer perceptron: all sit within 0.002 of log loss.', 'Walk-forward log loss, 8,981 matches: further left is better.',
   'Validation', 'Always tested on the unknown.', 'Validation is strictly chronological, walk-forward: for each season, the model is trained on the past only. The last full season served as the final test, once. Automated tests check for data leakage: removing the future must not change any feature.', 'Grey: training. Gradient: season under test.',
+  'Threshold and upsets', 'Only call it when it is clear.', 'A 50% favourite wins only one match in two: naming it the winner every time would blur the record. The app therefore only names a winner when its probability reaches 60%, a threshold chosen on the 2020-2024 seasons (the lowest at which picks are right at least two times in three) and then checked on the 2025/26 final test: one match in four gets a pick there, with 70.8% of picks right (bookmakers under the same rule: 72.2%). A draw never reaches the threshold: below it, the match is called too close. A second model estimates the risk that the favourite fails to win. Fatigue, stakes and form add nothing to what the main model already knows; the useful signal comes from the market: when the bookmakers rate a favourite lower than we do, it slips up far more often. The 20% most fragile picks, flagged “Upset risk”, failed 45% of the time in testing, against 29% on average.', 'Correct picks by threshold, 2025/26 final test; in brackets, share of matches with a pick.',
   'Results', 'What it is worth, unvarnished.', 'Measured on the 2025/26 final test (1,752 matches), the base model gets 52.5% of picks right with a log loss of 0.988, against 53.3% and 0.978 for the bookmakers. The additions tested since each cut log loss in validation: squad value −0.001, official line-up −0.003, stakes −0.001 (−0.005 late in the season). Their combined effect has not been measured in one go: we estimate the full version at about 53% correct picks, 53 to 54% once the official line-up is out, still slightly below the bookmakers. Probabilities are calibrated: an outcome rated 60% happens about six times in ten. The Track record tab will soon give the real figure.', 'Share of correct picks, measured on the 2025/26 final test, except the full version (estimate).',
-  'Limits: reported absences are picked up automatically, hence imperfectly, and their effect is not measured yet; market values date from June 2026. Over six test seasons, betting where the model disagrees with the bookmakers lost money. Statistical estimate, not betting advice.'];
+  'Limits: the effect of reported absences is not measured yet; market values date from June 2026. Over six test seasons, betting where the model disagrees with the bookmakers lost money. Statistical estimate, not betting advice.'];
 const MODEL_SEL = '#tab-modele .eyebrow, #tab-modele h1, #tab-modele .hero p, #tab-modele .kpis span, #tab-modele .node b, #tab-modele .node span, #tab-modele h2, #tab-modele .feat p, #tab-modele > .fine';
 let FR_MODEL = null;
 // Version publique sans données joueurs : l'onglet Modèle ne doit décrire que ce qui est réellement utilisé.
@@ -936,6 +991,9 @@ function drawModel() {
   $('#stakesviz').innerHTML = teams.map((tm, j) => `<div class="stk"><div class="stn">${esc(tm)}</div>${st.map((lab, i) => i < 3
       ? `<div class="pr ${demo[j][i] > 0 ? 'us' : ''}"><div><span>${lab}</span><b>${frn(demo[j][i] * 100, 0)} %</b></div><i style="width:${(demo[j][i] * 100).toFixed(0)}%"></i></div>`
       : `<div class="stdead ${demo[j][3] ? 'on' : ''}">${lab}</div>`).join('')}</div>`).join('');
+  const thr = [[LANG === 'en' ? 'No threshold (100%)' : 'Sans seuil (100 %)', 52.5, ''], ['50 % (49 %)', 62.6, ''], ['55 % (36 %)', 66.5, ''],
+    [LANG === 'en' ? '60%, chosen (25%)' : '60 %, retenu (25 %)', 70.8, 'us'], ['65 % (15 %)', 75.3, '']];
+  $('#thviz').innerHTML = thr.map(([n, v, c]) => `<div class="pr ${c}"><div><span>${LANG === 'en' ? n.replace(/ %/g, '%') : n}</span><b>${frn(v)} %</b></div><i style="width:${(v / 80 * 100).toFixed(1)}%"></i></div>`).join('');
   $('#perf').innerHTML = (pub ? t('viz').perfPub : t('viz').perf).map((n, i) => `<div class="pr ${cls[i]}"><div><span>${n}</span><b>${frn(vals[i])} %</b></div><i style="width:${(vals[i] / 60 * 100).toFixed(1)}%"></i></div>`).join('');
 }
 $('#sL').oninput = $('#sM').oninput = drawHeat;

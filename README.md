@@ -49,16 +49,23 @@ est publiée : relancer environ une heure avant un match pour l'intégrer.
 
 **Application** : double-cliquez sur le raccourci « Pronostics Foot » du Bureau (ou sur `Pronostics Foot.bat`,
 ou `python app.py`). Un petit serveur local (`app.py`, interface dans `app/index.html`) ouvre
-http://127.0.0.1:8765 dans le navigateur : onglets Matchs, Top pronostics, Suivi et Aide. Les prédictions
+http://127.0.0.1:8765 dans le navigateur : onglets Matchs, Top, Suivi et Modèle. Les prédictions
 sont recalculées à l'ouverture si elles ont plus de 3 heures, ou sur le bouton « Actualiser » ; le serveur
 s'arrête seul dix minutes après la fermeture de l'onglet.
+
+Les cartes n'affichent que le pronostic : un vainqueur si son issue atteint 60 % (`PICK_THRESHOLD` dans
+`config.py`), sinon « match ouvert ». Les probabilités sont dans la fiche du match, ouverte d'un clic. Un
+pronostic fragile selon le modèle de contre-performance porte l'alerte « Risque de contre-performance »
+(`src/decision.py`). Le Suivi ne compte que les pronostics émis, avec la même règle pour les bookmakers.
+Seuil et alerte : `scripts/18_threshold_upsets.py`, rapport, sections « Seuil de pronostic » et
+« Contre-performances du favori ».
 
 L'interface s'ouvre dans une fenêtre d'application (Edge ou Chrome en mode `--app`), sinon dans le navigateur
 par défaut. Elle propose une fiche par match (forme, Elo, scores probables, absents de la dernière feuille de
 match), un match à la une, la recherche, des équipes favorites, les derniers résultats, un suivi en graphique
 et une version anglaise. Liens directs : `#top`, `#suivi`, `#modele`, `?open=N`, `?lang=en`.
 
-**Actualité** : à chaque calcul, l'application locale lit neuf flux RSS publics (BBC, The Guardian, Sky, L'Équipe, AS, Mundo Deportivo, Gazzetta, Corriere dello Sport, Sportschau), repère les joueurs annoncés absents (`src/news.py`, sans IA payante) et recalcule les matchs concernés avec une composition probable. Désactivable avec `USE_NEWS` dans `config.py`. Les absences retenues sont consignées dans `results/news_absences_log.csv` pour mesurer leur apport après quelques semaines.
+**Blessés et actualité** : à chaque calcul, l'application lit les listes de blessés, incertains et suspendus que Rotowire publie avant chaque match des cinq championnats (`src/injuries.py`, une page par championnat, gardée une heure en cache). C'est la source qui fait foi. Elle lit aussi dix flux RSS publics (BBC, The Guardian, Sky, L'Équipe, AS, Mundo Deportivo, Gazzetta, Corriere dello Sport, Sportschau, Foot Mercato), dont `src/news.py` extrait les absences sans IA payante : ces articles complètent les listes Rotowire (liens, durée) et ne décident seuls que pour une équipe dont Rotowire ne publie pas le match. Les matchs concernés sont recalculés avec une composition probable. Désactivable avec `USE_NEWS` dans `config.py`. Les absences retenues sont consignées dans `results/news_absences_log.csv` pour mesurer leur apport après quelques semaines.
 
 **Version hébergée** : `python build_site.py` fabrique un site statique dans `site/` (sans écussons ni
 données joueurs), mis à jour automatiquement par `.github/workflows/site.yml`. Voir `DEPLOY.md`.

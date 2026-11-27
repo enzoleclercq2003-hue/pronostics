@@ -42,6 +42,12 @@ PUBLIC_USE_PLAYER_DATA = True
 # compte à chaque calcul via une composition probable. Mettre à False pour revenir au modèle sans actualité.
 USE_NEWS = True
 
+# Seuil de pronostic : l'application ne désigne un vainqueur que si l'issue la plus probable atteint ce
+# seuil ; en dessous, le match est affiché « ouvert », sans pronostic. Choisi sur les saisons de décision
+# 2020-2024 (scripts/18_threshold_upsets.py) : plus petit seuil où les pronostics émis sont justes au
+# moins deux fois sur trois.
+PICK_THRESHOLD = 0.60
+
 # --- Sources ----------------------------------------------------------------
 PRIMARY_URL = "https://www.football-data.co.uk/mmz4281/{season_code}/{league}.csv"
 # Source de secours (sans cotes) : dépôt GitHub datasets/football-datasets
